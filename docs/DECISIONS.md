@@ -128,3 +128,11 @@ Agreed deviations from / clarifications of the original spec. Newest last.
 - **Token icon** shows "T" for Tether (was "U", the first letter of the symbol).
 - **E2E: Maestro 2.12.1** (CLI, not an npm dependency). Flows in `.maestro/`, runner script `scripts/e2e-android.sh`, CI job on an API 34 x86_64 emulator after the APK build. The APK now contains arm64-v8a + x86_64 so the same file serves phones and the emulator. A real-transfer flow (tag `funded`) runs only when `E2E_FUNDED_PHRASE` is provided — use a throwaway testnet phrase. `testID`s were added only where text isn't unique (backup words, delete confirmation).
 - Not covered by E2E (stays manual): real biometrics, camera QR scanning, screenshot blocking, Recents thumbnail, visual match with the mockups.
+
+## Before making the repository public
+
+- **Audit** of the working tree and the full git history: no `.env`, keystores, API keys or tokens ever committed; the only 64-hex value is the public BIP39 reference seed; the only phrases are public test vectors.
+- **Commit author email** rewritten to the GitHub noreply address in the whole history (force-push of `main` and the PR branch, approved by the owner).
+- **E2E secret hygiene:** the funded-wallet flow writes nothing to the uploaded artifact (Maestro logs/screenshots/JUnit could contain the typed phrase); only PASSED/FAILED is printed.
+- **Build visibility:** test APKs (dev helpers, test keys, public debug signature) are deleted after E2E (1-day retention as a fallback; `keep_apk` on manual runs keeps one for 3 days). Public APKs come only from `release.yml` on `v*` tags: no dev helpers, signed with the owner's release key from Secrets (re-signed with `apksigner`), checksum published. Guide: `docs/RELEASE.md`.
+- **API keys stay client-side** (owner's decision): free Etherscan/CoinGecko keys are inlined into the APK and therefore public; documented in README/RELEASE.md with the production alternative (own proxy holding the keys).

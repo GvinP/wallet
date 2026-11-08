@@ -169,15 +169,13 @@ Test POL: https://faucet.polygon.technology (Amoy).
 
 ## Try it on Android
 
-Every push builds an installable **release APK** (arm64, JS bundled, no Metro needed) in GitHub Actions:
+Download the latest **`amethyst-<version>.apk`** from [GitHub Releases](../../releases)
+(Amoy testnet build, signed with the project's release key, SHA-256 checksum attached),
+open it on the phone and allow "Install unknown apps" for your browser / file manager.
 
-1. Repo → **Actions** → **Android APK** → the latest green run → _Artifacts_ → `amethyst-android-apk` (a zip with the `.apk`).
-2. Copy the APK to the phone, open it and allow "Install unknown apps" for your file manager / browser.
-
-Test builds include the developer helpers (crypto benchmark, "lock now"). To bake keys into the APK, add
-`EXPO_PUBLIC_ETHERSCAN_KEY` (and optionally `EXPO_PUBLIC_COINGECKO_KEY`) as repository **secrets** and
-`EXPO_PUBLIC_USDT_AMOY` as a repository **variable** (Settings → Secrets and variables → Actions).
-The APK is signed with the Expo template's debug key — fine for testing, not for distribution.
+Releases are built by CI from version tags — see [`docs/RELEASE.md`](docs/RELEASE.md).
+Test builds from the "Android APK" workflow (with developer helpers) are used for the E2E run and
+deleted afterwards; a maintainer can keep one for 3 days via _Run workflow → keep_apk_.
 
 ## Testing
 

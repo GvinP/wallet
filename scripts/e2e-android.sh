@@ -18,10 +18,17 @@ status=0
   --debug-output "$OUT/debug" || status=$?
 
 if [ -n "${E2E_FUNDED_PHRASE:-}" ]; then
+  # Nothing from this run goes under $OUT (uploaded as a public artifact): Maestro's logs,
+  # screenshots and even JUnit failure messages can contain the phrase typed by inputText.
+  FUNDED_TMP="$(mktemp -d)"
+  funded=0
   "$MAESTRO" test .maestro --include-tags funded \
     -e E2E_FUNDED_PHRASE="$E2E_FUNDED_PHRASE" \
-    --format junit --output "$OUT/report-funded.xml" \
-    --debug-output "$OUT/debug-funded" || status=$?
+    --format junit --output "$FUNDED_TMP/report.xml" \
+    --debug-output "$FUNDED_TMP/debug" >/dev/null 2>&1 || funded=$?
+  rm -rf "$FUNDED_TMP" "$HOME/.maestro/tests"
+  echo "Funded Amoy transfer flow: $([ "$funded" -eq 0 ] && echo PASSED || echo FAILED) (details intentionally not logged)"
+  [ "$funded" -eq 0 ] || status=$funded
 else
   echo "E2E_FUNDED_PHRASE not set — skipping the real Amoy transfer flow."
 fi

@@ -1,9 +1,12 @@
 name: Android APK
 
-# 1) Installable test build: a standalone release APK (JS bundled, no Metro needed), signed with
-#    the debug keystore from the Expo template — fine for testing, not for the Play Store.
-#    Built for arm64-v8a (phones) and x86_64 (emulators).
+# 1) Test build: a standalone release-mode APK (JS bundled, no Metro needed) WITH developer
+#    helpers, signed with the Expo template's public debug keystore. Built for arm64-v8a (phones)
+#    and x86_64 (emulators).
 # 2) End-to-end tests: the same APK on an Android emulator, driven by Maestro (.maestro/).
+# 3) The test APK is deleted right after E2E (the repo is public). To install a test build on a
+#    phone, run this workflow manually with "keep_apk" ticked: the APK is then kept for 3 days.
+#    Public builds come from .github/workflows/release.yml (tags v*) → GitHub Releases.
 #
 # Optional repository settings (Settings → Secrets and variables → Actions):
 #   secrets.EXPO_PUBLIC_ETHERSCAN_KEY   — full transaction history
@@ -18,6 +21,11 @@ on:
     branches: ['**']
     paths-ignore: ['**.md', 'docs/**', 'contracts/**']
   workflow_dispatch:
+    inputs:
+      keep_apk:
+        description: Keep the test APK as a downloadable artifact for 3 days
+        type: boolean
+        default: false
 
 concurrency:
   group: android-apk-${{ github.ref }}
@@ -31,6 +39,8 @@ jobs:
     name: Build release APK
     runs-on: ubuntu-latest
     timeout-minutes: 75
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
     env:
       EXPO_PUBLIC_ETHERSCAN_KEY: ${{ secrets.EXPO_PUBLIC_ETHERSCAN_KEY }}
       EXPO_PUBLIC_COINGECKO_KEY: ${{ secrets.EXPO_PUBLIC_COINGECKO_KEY }}
@@ -72,16 +82,20 @@ jobs:
           ls -lh dist
 
       - uses: actions/upload-artifact@v4
+        id: upload
         with:
           name: amethyst-android-apk
           path: dist/*.apk
-          retention-days: 14
+          retention-days: ${{ inputs.keep_apk && 3 || 1 }}
 
   e2e:
     name: E2E (Maestro on Android emulator)
     needs: apk
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: write # to delete the test APK artifact afterwards
     steps:
       - uses: actions/checkout@v4
 
@@ -125,4 +139,11 @@ jobs:
         with:
           name: maestro-e2e
           path: e2e-output
-          retention-days: 14
+          retention-days: 7
+
+      # The test APK carries dev helpers and test API keys — don't leave it public.
+      - name: Delete the test APK artifact
+        if: always() && !inputs.keep_apk
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X DELETE "repos/${{ github.repository }}/actions/artifacts/${{ needs.apk.outputs.artifact-id }}"
