@@ -64,3 +64,10 @@ Agreed deviations from / clarifications of the original spec. Newest last.
 - **Focus refetch:** TanStack `focusManager` is wired to `AppState`.
 - **Integration tests** (`npm run test:integration`) hit the live Amoy RPC in a plain Node Jest config — jest-expo stubs global `fetch`.
 - **Recent activity** on the home screen is an empty state until phase 6.
+
+## Phase 4 — receive
+
+- **QR payload = bare checksummed address** (not an EIP-681 `ethereum:0x…@80002` URI). It's what MetaMask itself shows and every wallet/exchange scanner accepts; chain-id URIs are parsed inconsistently by other apps. The network is communicated by the pill and the warning instead.
+- **QR is always black on white** (ECL M) regardless of theme — inverted codes fail on many scanners.
+- Warning text follows the spec/mockup, with the network name substituted (e.g. "…on the Polygon Amoy network…").
+- `react-native-qrcode-svg` (spec dependency) pulls in `text-encoding`, which npm flags as deprecated; harmless (used only for non-ASCII payloads), noted for the README.
