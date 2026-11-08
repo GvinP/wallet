@@ -23,3 +23,19 @@ Agreed deviations from / clarifications of the original spec. Newest last.
 - **Entry order** (`index.ts`): `react-native-get-random-values` → Unistyles config → `expo-router/entry`.
 - **Lint rule** `no-console` (only `warn`/`error` allowed) — a cheap guard against logging secrets.
 - **Bundle IDs**: `com.gvinp.amethyst` on both platforms (change before publishing if needed).
+
+## Phase 1 — wallet core
+
+- **`@scure/bip39` and `@noble/hashes` as direct deps**, pinned to exactly the versions viem already ships (deduped — no extra bundle code). viem doesn't re-export `validateMnemonic` / `mnemonicToSeed`, and PBKDF2 for the PIN comes from `@noble/hashes` (decision 6).
+- **PIN work factor revised (supersedes the "slow KDF" part of decision 6).** Measured 100k PBKDF2-SHA256 iterations at ~7.5 s on a JIT-less interpreter (Hermes has no JIT). The PIN hash sits in the same Keychain/Keystore as the mnemonic, so an attacker who can extract it already has the phrase — heavy stretching buys almost nothing. The real defence is the persisted attempt counter + growing lockout. Default is **10k iterations**, stored per record; raising it later rehashes on the next successful unlock. Final value to be tuned on a low-end Android via the dev benchmark.
+  - Possible future hardening (out of MVP scope): encrypt the seed with a PIN-derived key and keep a second copy of that key behind an OS biometric-bound Keychain item — then the KDF becomes meaningful.
+- **Lockout schedule:** 4 free mistakes; from the 5th: 30 s → 1 min → 5 min → 15 min → 1 h (repeats). Counter + deadline live in SecureStore. Note: based on the device clock.
+- **SecureStore options:** `WHEN_UNLOCKED_THIS_DEVICE_ONLY` (no migration to other devices); `requireAuthentication` is _not_ used because app access is gated by our own biometrics-with-PIN-fallback lock.
+- **Biometric prompt:** `disableDeviceFallback: true` (fallback is our PIN, not the OS passcode), Android `biometricsSecurityLevel: 'strong'` (Class 3 only).
+- **Dev benchmark:** `/dev/benchmark` (dev builds only, link in Settings) times mnemonic generation, mnemonic → seed, seed → account and the PIN hash on the device, using the public test phrase.
+
+| Step (Node 22, x86) | With JIT | `--jitless` |
+| ------------------- | -------- | ----------- |
+| Mnemonic → seed     | ~8 ms    | ~550 ms     |
+| Seed → account      | ~3 ms    | ~7 ms       |
+| PIN hash ×100k      | ~150 ms  | ~7 500 ms   |

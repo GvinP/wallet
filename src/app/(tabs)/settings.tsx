@@ -24,6 +24,7 @@ function SettingsScreen() {
       phase={7}
       bottomInset={false}
       description="Network, biometrics, show recovery phrase, delete wallet and app version come later."
+      links={__DEV__ ? [{ title: 'Dev: crypto benchmark', href: '/dev/benchmark' }] : []}
     >
       <View style={styles.section}>
         <Text variant="caption" color="muted" style={styles.sectionTitle}>

@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.gvinp.amethyst"
+      "bundleIdentifier": "com.gvinp.amethyst",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.gvinp.amethyst",
@@ -38,6 +41,18 @@
           "dark": {
             "backgroundColor": "#0F0D14"
           }
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Amethyst uses Face ID to unlock the app and confirm transfers."
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Amethyst uses Face ID to unlock the app and confirm transfers."
         }
       ]
     ],
