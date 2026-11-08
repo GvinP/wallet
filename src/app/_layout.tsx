@@ -14,7 +14,7 @@ import { AppState } from 'react-native';
 import { UnistylesRuntime, useUnistyles } from 'react-native-unistyles';
 
 import { queryClient, subscribeAppFocus } from '@/api/queryClient';
-import { sessionStore } from '@/stores';
+import { pendingTxStore, sessionStore } from '@/stores';
 import { Banner } from '@/ui/Banner';
 import { PrivacyCover } from '@/ui/PrivacyCover';
 import { Screen } from '@/ui/Screen';
@@ -33,7 +33,10 @@ function RootLayout() {
   const { status } = sessionStore;
 
   useEffect(() => {
-    sessionStore.bootstrap().catch(() => setBootError(true));
+    sessionStore
+      .bootstrap()
+      .then(() => pendingTxStore.resume()) // pending transfers survive restarts (spec §8)
+      .catch(() => setBootError(true));
     const sub = AppState.addEventListener('change', (s) => sessionStore.handleAppStateChange(s));
     const unsubscribeFocus = subscribeAppFocus();
     return () => {

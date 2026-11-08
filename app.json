@@ -54,6 +54,13 @@
         {
           "faceIDPermission": "Amethyst uses Face ID to unlock the app and confirm transfers."
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Amethyst uses the camera to scan wallet address QR codes.",
+          "recordAudioAndroid": false
+        }
       ]
     ],
     "experiments": {

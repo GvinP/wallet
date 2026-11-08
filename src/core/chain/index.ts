@@ -4,3 +4,6 @@ export * from './money';
 export * from './networks';
 export * from './portfolio';
 export * from './receive';
+export * from './pendingTx';
+export * from './send';
+export * from './transfer';

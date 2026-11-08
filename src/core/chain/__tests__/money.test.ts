@@ -1,6 +1,13 @@
 import { parseUnits } from 'viem';
 
-import { formatTokenAmount, formatUsdCents, formatUsdPrice, toUsdCents } from '../money';
+import {
+  formatTokenAmount,
+  formatUsdCents,
+  formatUsdMicros,
+  formatUsdPrice,
+  toUsdCents,
+  toUsdMicros,
+} from '../money';
 
 describe('toUsdCents', () => {
   it('multiplies base units by price without float drift', () => {
@@ -70,4 +77,19 @@ describe('formatTokenAmount', () => {
   it('shows zero as zero', () => {
     expect(formatTokenAmount(0n, 18, { minFraction: 2 })).toBe('0.00');
   });
+});
+
+describe('fee-sized USD (micro-dollars)', () => {
+  it('keeps sub-cent precision', () => {
+    // 0.0031 POL × $0.40 = $0.00124
+    const micros = toUsdMicros(parseUnits('0.0031', 18), 18, 0.4);
+    expect(micros).toBe(1240n);
+    expect(formatUsdMicros(micros)).toBe('$0.0012');
+  });
+  it.each([
+    [0n, '$0.00'],
+    [50n, '<$0.0001'],
+    [10_000n, '$0.01'],
+    [25_000_000n, '$25.00'],
+  ])('%p → %p', (micros, text) => expect(formatUsdMicros(micros)).toBe(text));
 });

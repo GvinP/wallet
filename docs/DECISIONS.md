@@ -71,3 +71,17 @@ Agreed deviations from / clarifications of the original spec. Newest last.
 - **QR is always black on white** (ECL M) regardless of theme — inverted codes fail on many scanners.
 - Warning text follows the spec/mockup, with the network name substituted (e.g. "…on the Polygon Amoy network…").
 - `react-native-qrcode-svg` (spec dependency) pulls in `text-encoding`, which npm flags as deprecated; harmless (used only for non-ASCII payloads), noted for the README.
+
+## Phase 5 — sending
+
+- **Shown fee = upper bound** `gas × maxFeePerGas` (EIP-1559 values from the RPC, incl. Polygon's high priority-fee floor). The paid fee is usually lower; verified on a local chain that paid ≤ shown.
+- **Gas:** exact estimate for POL (21 000 to an EOA); +20 % headroom for the ERC-20 `transfer`.
+- **Max (POL)** = balance − maxFee − 10 %. **Max (USDT)** = whole balance.
+- **Recipient:** strict EIP-55 for mixed case, all-lower/upper accepted (no checksum present, as in MetaMask); own address blocked; EIP-681 URIs from QR codes are parsed and a different chain id is rejected.
+- **Amount input** is sanitized as you type (comma → dot, max token decimals); parsing is string → `parseUnits`, never floats.
+- **What's signed is frozen:** "Review" stores an immutable snapshot (token, recipient, amount, fee params). Confirm authorizes that snapshot once (biometrics → PIN fallback); the status screen _consumes_ the authorization (single use, 60 s TTL), so re-renders/StrictMode can never double-send.
+- **Pending transactions** (`PendingTxStore`) are persisted in MMKV right after broadcast and tracked with `waitForTransactionReceipt` (5 min window, resumed on every app start); replacements (speed-up/cancel from another wallet) are followed. Settled entries are kept 24 h for the phase-6 history merge.
+- **Error copy is honest about uncertainty:** after a network error the tx may still have been broadcast, so we say "check Activity before trying again" instead of "nothing was sent".
+- **MockUSDT** (`contracts/MockUSDT.sol`): OpenZeppelin ERC-20, 6 decimals, open `mint` ≤ 1 M per call, constructor reverts unless chain id is 80002. Deploy guide: `docs/MOCK_USDT.md`.
+- **Local e2e:** `send.localevm.integration.test.ts` runs the real pipeline against anvil/ganache (chain 80002) — skipped unless `LOCAL_RPC_URL` and `MOCK_USDT_ADDRESS` are set.
+- **Mainnet stays disabled** (`MAINNET_ENABLED = false`) until this phase is accepted on devices and the Polygon USDT address is re-verified.

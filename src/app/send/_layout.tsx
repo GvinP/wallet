@@ -10,6 +10,8 @@ export default function SendLayout() {
         contentStyle: { backgroundColor: theme.colors.bg },
       }}
     >
+      <Stack.Screen name="scan" options={{ presentation: 'fullScreenModal' }} />
+      {/* No swipe-back from the status screen: the transfer may be in flight. */}
       <Stack.Screen name="status" options={{ gestureEnabled: false }} />
     </Stack>
   );

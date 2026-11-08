@@ -18,6 +18,21 @@ export function toUsdCents(amount: bigint, decimals: number, priceUsd: number): 
   return (scaled + divisor / 2n) / divisor;
 }
 
+/** amount × price → USD micro-dollars (1e-6), for sub-cent values such as network fees. */
+export function toUsdMicros(amount: bigint, decimals: number, priceUsd: number): bigint {
+  const scaled = amount * priceToFixed(priceUsd);
+  const divisor = 10n ** BigInt(decimals + PRICE_DECIMALS - 6);
+  return (scaled + divisor / 2n) / divisor;
+}
+
+/** Fee-style USD: "$1.23", "$0.0012", "<$0.0001". */
+export function formatUsdMicros(micros: bigint): string {
+  if (micros >= 10_000n) return formatUsdCents((micros + 5_000n) / 10_000n);
+  if (micros < 100n) return micros === 0n ? '$0.00' : '<$0.0001';
+  const tenThousandths = (micros + 50n) / 100n; // 4 decimals
+  return `$0.${tenThousandths.toString().padStart(4, '0')}`;
+}
+
 const groupThousands = (digits: string) => digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
 /** 24820n → "$248.20", 123456789n → "$1,234,567.89" */

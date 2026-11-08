@@ -91,3 +91,47 @@ Before enabling mainnet (after phase 5)
 - [ ] 📱 Share → system share sheet with "My Polygon Amoy address (POL and USDT):" + address
 - [ ] 📱 Warning banner at the bottom; on small phones the page scrolls instead of overlapping
 - [ ] 📱 Opens as a modal from Home → Receive; swipe down / back closes it
+
+## Phase 5 — sending (Amoy)
+
+(Automated: the full send pipeline — Vault → fee estimate → sign → broadcast → receipt — passed for POL and
+USDT on a local chain-80002 EVM with the real MockUSDT, including Max, an on-chain failure and
+"insufficient funds". See `src/core/chain/__tests__/send.localevm.integration.test.ts`.)
+
+Setup
+
+- [ ] Deploy MockUSDT on Amoy following `docs/MOCK_USDT.md`; set `EXPO_PUBLIC_USDT_AMOY`; restart Metro with `--clear`
+- [ ] Fund the app wallet: some POL from the faucet + mint ~1,000 USDT to it
+
+**Acceptance — transfers go through and are visible in the explorer**
+
+- [ ] 📱 Send 0.01 POL to another address → "Sending…" → "Sent!" → "Pending" → "Confirmed on Polygon Amoy"; "View on explorer" opens amoy.polygonscan.com/tx/… with status Success
+- [ ] 📱 Send 5 USDT → same flow; the explorer shows an ERC-20 transfer of 5 USDT
+- [ ] 📱 Home balances update after confirmation (without pulling to refresh)
+- [ ] 📱 Kill the app right after "Sent!" → relaunch, unlock → the transfer still settles (pending survives restart; visible in Activity in phase 6)
+
+**Acceptance — errors are handled**
+
+- [ ] 📱 Invalid address (`0x123`) → "That's not a valid Polygon address."
+- [ ] 📱 Mixed-case address with one letter's case flipped → checksum error
+- [ ] 📱 Your own address → blocked with an explanation
+- [ ] 📱 Amount above the balance → "Not enough POL/USDT"; Review stays disabled
+- [ ] 📱 USDT with 0 POL in the wallet → "Not enough POL to pay the network fee"
+- [ ] 📱 Too many decimals (e.g. 0.0000001 USDT) can't be typed (input caps at 6)
+- [ ] 📱 Airplane mode on the confirm screen → Confirm → "Couldn't reach the network…" with "Review again"
+
+Form & confirm
+
+- [ ] 📱 Token cards show balances; USDT card disabled when not configured
+- [ ] 📱 Paste fills the address; Scan opens the camera (permission prompt text: "Amethyst uses the camera to scan wallet address QR codes.")
+- [ ] 📱 Scanning the Receive QR of another Amethyst/MetaMask wallet fills its address; a non-address QR is ignored
+- [ ] 📱 Camera permission denied → "Open Settings"
+- [ ] 📱 USD equivalent under the amount; fee line "≈ 0.00xx POL ($0.00xx)", refreshes ~every 20 s
+- [ ] 📱 Max (POL): the amount is balance minus fee; sending it succeeds and leaves dust ≥ 0
+- [ ] 📱 Max (USDT): the whole USDT balance
+- [ ] 📱 Comma decimal keyboards: typing "1,5" becomes "1.5"
+- [ ] 📱 Confirm screen matches the mockup (token icon, big amount, ≈ USD, From/To/Network/Fee, warning, Cancel/Confirm with the biometry icon)
+- [ ] 📱 Confirm → Face ID / fingerprint prompt; cancel ("Use PIN") → PIN sheet; correct PIN sends, wrong PIN counts toward the lockout
+- [ ] 📱 Biometrics disabled → Confirm goes straight to the PIN sheet
+- [ ] 📱 Can't swipe back from "Sending…"; Done closes the whole send sheet; reopening Send starts empty
+- [ ] 📱 Note the fee shown vs. the fee actually paid on polygonscan (shown is an upper bound): ____ / ____
