@@ -1,4 +1,4 @@
-# Spec phase 4: QR + full address, Copy feedback, network warning.
+# Spec phase 4: QR + full address, Copy puts exactly our address on the clipboard, network warning.
 appId: com.gvinp.amethyst
 tags: [wallet]
 ---
@@ -9,4 +9,14 @@ tags: [wallet]
 - assertVisible: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
 - assertVisible: '.*on the Polygon Amoy network.*'
 - tapOn: 'Copy'
-- assertVisible: 'Copied'
+# The "Copied" label only lasts 2 s and Android 13+ shows its own clipboard overlay meanwhile,
+# so check the result instead: paste the clipboard into Send → the app recognises our own address.
+- back
+- extendedWaitUntil:
+    visible: 'Total balance'
+    timeout: 10000
+- tapOn: 'Send'
+- tapOn: 'Paste address'
+- extendedWaitUntil:
+    visible: 'This is your own address.*'
+    timeout: 10000
