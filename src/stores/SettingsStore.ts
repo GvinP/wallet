@@ -50,6 +50,13 @@ export class SettingsStore {
     applyThemePreference(preference);
   }
 
+  /** Wallet deleted: per-wallet settings go back to defaults (the theme is a device preference). */
+  resetWalletSettings() {
+    this.setBiometricsEnabled(false);
+    this.network = DEFAULT_NETWORK;
+    storage.remove(NETWORK_KEY);
+  }
+
   setBiometricsEnabled(enabled: boolean) {
     this.biometricsEnabled = enabled;
     storage.set(BIOMETRICS_KEY, enabled);

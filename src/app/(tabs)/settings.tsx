@@ -1,12 +1,20 @@
+import { router } from 'expo-router';
+import { Gauge, Globe, Info, KeyRound, Lock, Trash2 } from 'lucide-react-native';
 import { observer } from 'mobx-react-lite';
-import { View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { useState } from 'react';
+import { ScrollView, Switch, View } from 'react-native';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
-import { settingsStore } from '@/stores';
+import { NETWORKS } from '@/core/chain/networks';
+import { authenticateWithBiometrics } from '@/core/security';
+import { biometryIcon, useBiometryStatus } from '@/hooks/useBiometryStatus';
+import { sensitiveGrants, settingsStore, type SensitiveAction } from '@/stores';
 import type { ThemePreference } from '@/theme/preference';
-import { palettes, type ColorName } from '@/theme/tokens';
-import { ScreenStub } from '@/ui/ScreenStub';
+import { appVersion } from '@/ui/appVersion';
+import { NetworkPill } from '@/ui/NetworkPill';
+import { PinPromptModal } from '@/ui/PinPromptModal';
 import { SegmentedControl } from '@/ui/SegmentedControl';
+import { SettingsDivider, SettingsGroup, SettingsRow } from '@/ui/SettingsRow';
 import { Text } from '@/ui/Text';
 
 const THEME_OPTIONS = [
@@ -15,75 +23,165 @@ const THEME_OPTIONS = [
   { value: 'light', label: 'Light' },
 ] as const satisfies readonly { value: ThemePreference; label: string }[];
 
-const SWATCHES = Object.keys(palettes.dark) as ColorName[];
+const PIN_PROMPTS: Record<SensitiveAction, { title: string; subtitle: string; route: string }> = {
+  revealPhrase: {
+    title: 'Show recovery phrase',
+    subtitle: 'Enter your PIN to view your 12 words.',
+    route: '/recovery-phrase',
+  },
+  deleteWallet: {
+    title: 'Delete wallet',
+    subtitle: 'Enter your PIN to continue.',
+    route: '/delete-wallet',
+  },
+};
 
 function SettingsScreen() {
-  return (
-    <ScreenStub
-      title="Settings"
-      phase={7}
-      bottomInset={false}
-      description="Network, biometrics, show recovery phrase, delete wallet and app version come later."
-      links={__DEV__ ? [{ title: 'Dev: crypto benchmark', href: '/dev/benchmark' }] : []}
-    >
-      <View style={styles.section}>
-        <Text variant="caption" color="muted" style={styles.sectionTitle}>
-          APPEARANCE
-        </Text>
-        <SegmentedControl
-          accessibilityLabel="Theme"
-          options={THEME_OPTIONS}
-          value={settingsStore.themePreference}
-          onChange={(value) => settingsStore.setThemePreference(value)}
-        />
-      </View>
+  const { theme } = useUnistyles();
+  const biometry = useBiometryStatus();
+  const [pinFor, setPinFor] = useState<SensitiveAction | null>(null);
+  const [bioError, setBioError] = useState<string | null>(null);
+  const network = NETWORKS[settingsStore.network];
+  const BioIcon = biometryIcon(biometry?.kind ?? 'biometrics');
+  const bioLabel = biometry?.label ?? 'Biometrics';
 
-      <View style={styles.section}>
-        <Text variant="caption" color="muted" style={styles.sectionTitle}>
-          THEME TOKENS
-        </Text>
-        <View style={styles.card}>
-          {SWATCHES.map((name) => (
-            <View key={name} style={styles.swatchRow}>
-              <View style={styles.swatch(name)} />
-              <Text variant="small">{name}</Text>
-            </View>
-          ))}
+  const toggleBiometrics = async (on: boolean) => {
+    setBioError(null);
+    if (!on) {
+      settingsStore.setBiometricsEnabled(false);
+      return;
+    }
+    // Prove the biometric works before relying on it for unlock and transfers.
+    const result = await authenticateWithBiometrics(`Enable ${bioLabel} for Amethyst`);
+    if (result.success) settingsStore.setBiometricsEnabled(true);
+    else if (result.reason !== 'cancelled' && result.reason !== 'fallback') {
+      setBioError(`${bioLabel} isn't available right now.`);
+    }
+  };
+
+  const onPinSuccess = () => {
+    if (!pinFor) return;
+    const { route } = PIN_PROMPTS[pinFor];
+    sensitiveGrants.grant(pinFor);
+    setPinFor(null);
+    router.push(route as '/recovery-phrase' | '/delete-wallet');
+  };
+
+  return (
+    <ScrollView style={styles.root} contentContainerStyle={styles.content}>
+      <Text variant="title">Settings</Text>
+
+      <SettingsGroup title="Network">
+        <SettingsRow
+          icon={Globe}
+          title="Network"
+          right={<NetworkPill network={network} label="full" />}
+          onPress={() => router.push('/network')}
+        />
+      </SettingsGroup>
+
+      <SettingsGroup title="Appearance">
+        <View style={styles.padded}>
+          <SegmentedControl
+            accessibilityLabel="Theme"
+            options={THEME_OPTIONS}
+            value={settingsStore.themePreference}
+            onChange={(value) => settingsStore.setThemePreference(value)}
+          />
         </View>
-      </View>
-    </ScreenStub>
+      </SettingsGroup>
+
+      <SettingsGroup title="Security">
+        <SettingsRow
+          icon={BioIcon}
+          title={`Unlock with ${bioLabel}`}
+          subtitle={
+            biometry && !biometry.available
+              ? 'Not set up on this device'
+              : (bioError ?? 'Also used to confirm transfers')
+          }
+          right={
+            <Switch
+              accessibilityLabel={`Unlock with ${bioLabel}`}
+              value={settingsStore.biometricsEnabled && !!biometry?.available}
+              disabled={!biometry?.available}
+              onValueChange={toggleBiometrics}
+              trackColor={{ false: theme.colors.surface2, true: theme.colors.accent }}
+              thumbColor="#FFFFFF"
+              ios_backgroundColor={theme.colors.surface2}
+            />
+          }
+        />
+        <SettingsDivider />
+        <SettingsRow
+          icon={KeyRound}
+          title="Show recovery phrase"
+          subtitle="Requires your PIN"
+          onPress={() => setPinFor('revealPhrase')}
+        />
+        <SettingsDivider />
+        <SettingsRow icon={Lock} title="Auto-lock" subtitle="After 1 minute in the background" />
+      </SettingsGroup>
+
+      <SettingsGroup title="Danger zone">
+        <SettingsRow
+          icon={Trash2}
+          title="Delete wallet"
+          subtitle="Remove it from this device"
+          destructive
+          onPress={() => setPinFor('deleteWallet')}
+        />
+      </SettingsGroup>
+
+      <SettingsGroup title="About">
+        <SettingsRow
+          icon={Info}
+          title="Version"
+          right={<Text color="muted">{appVersion()}</Text>}
+        />
+        {__DEV__ ? (
+          <>
+            <SettingsDivider />
+            <SettingsRow
+              icon={Gauge}
+              title="Dev: crypto benchmark"
+              onPress={() => router.push('/dev/benchmark')}
+            />
+          </>
+        ) : null}
+      </SettingsGroup>
+
+      <Text variant="caption" color="muted" align="center" style={styles.footer}>
+        Amethyst · self-custody wallet for Polygon.{'\n'}Your keys never leave this device.
+      </Text>
+
+      <PinPromptModal
+        visible={pinFor !== null}
+        title={pinFor ? PIN_PROMPTS[pinFor].title : ''}
+        subtitle={pinFor ? PIN_PROMPTS[pinFor].subtitle : undefined}
+        onSuccess={onPinSuccess}
+        onCancel={() => setPinFor(null)}
+      />
+    </ScrollView>
   );
 }
 
 export default observer(SettingsScreen);
 
-const styles = StyleSheet.create((theme) => ({
-  section: {
-    marginTop: theme.space(6),
+const styles = StyleSheet.create((theme, rt) => ({
+  root: {
+    flex: 1,
+    backgroundColor: theme.colors.bg,
   },
-  sectionTitle: {
-    marginBottom: theme.space(2),
-    letterSpacing: 0.6,
+  content: {
+    paddingTop: rt.insets.top + theme.space(4),
+    paddingHorizontal: theme.layout.screenPadding,
+    paddingBottom: theme.space(10),
   },
-  card: {
-    padding: theme.space(4),
-    gap: theme.space(2),
-    borderRadius: theme.radius.card,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    backgroundColor: theme.colors.surface,
+  padded: {
+    padding: theme.space(3),
   },
-  swatchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.space(3),
+  footer: {
+    marginTop: theme.space(8),
   },
-  swatch: (name: ColorName) => ({
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    backgroundColor: theme.colors[name],
-  }),
 }));

@@ -32,11 +32,12 @@ export class SessionStore {
     this.pinManager = pinManager;
     this.wallet = wallet;
     this.now = now;
-    makeAutoObservable<this, 'vault' | 'pinManager' | 'wallet' | 'now'>(this, {
+    makeAutoObservable<this, 'vault' | 'pinManager' | 'wallet' | 'now' | 'resetHooks'>(this, {
       vault: false,
       pinManager: false,
       wallet: false,
       now: false,
+      resetHooks: false,
     });
   }
 
@@ -89,6 +90,31 @@ export class SessionStore {
 
   lock() {
     if (this.status === 'unlocked') this.status = 'locked';
+  }
+
+  /**
+   * Removes the wallet from this device: secrets, PIN, cached address, and whatever the caller
+   * registered via `onReset` (pending txs, caches, settings). Returns to onboarding.
+   * Callers must have verified the PIN + explicit confirmation (spec §6.8),
+   * or be the "Forgot PIN" flow, which only ever deletes.
+   */
+  async resetWallet(beforeOnboarding?: () => void): Promise<void> {
+    await this.vault.wipe();
+    await this.pinManager.clear();
+    this.wallet.clear();
+    for (const fn of this.resetHooks) fn();
+    // Runs after the cleanup hooks, right before the guards switch to onboarding.
+    beforeOnboarding?.();
+    runInAction(() => {
+      this.backgroundedAt = null;
+      this.status = 'onboarding';
+    });
+  }
+
+  private readonly resetHooks: (() => void)[] = [];
+
+  onReset(fn: () => void) {
+    this.resetHooks.push(fn);
   }
 
   handleAppStateChange(next: AppStateStatus) {

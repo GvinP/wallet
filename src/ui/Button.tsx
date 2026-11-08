@@ -4,7 +4,7 @@ import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import { Text } from './Text';
 
-type Variant = 'primary' | 'secondary' | 'outline';
+type Variant = 'primary' | 'secondary' | 'outline' | 'danger';
 
 export type ButtonProps = Omit<PressableProps, 'children' | 'style'> & {
   title: string;
@@ -28,7 +28,8 @@ export function Button({
   const isDisabled = disabled || loading;
   styles.useVariants({ variant, disabled: isDisabled });
 
-  const contentColor = variant === 'primary' ? theme.colors.onAccent : theme.colors.text;
+  const contentColor =
+    variant === 'primary' || variant === 'danger' ? theme.colors.onAccent : theme.colors.text;
 
   return (
     <Pressable
@@ -62,6 +63,7 @@ const styles = StyleSheet.create((theme) => ({
     variants: {
       variant: {
         primary: { backgroundColor: theme.colors.accent },
+        danger: { backgroundColor: theme.colors.danger },
         secondary: { backgroundColor: theme.colors.surface2 },
         outline: {
           backgroundColor: 'transparent',
@@ -91,6 +93,7 @@ const styles = StyleSheet.create((theme) => ({
     variants: {
       variant: {
         primary: { color: theme.colors.onAccent },
+        danger: { color: theme.colors.onAccent },
         secondary: { color: theme.colors.text },
         outline: { color: theme.colors.text },
       },

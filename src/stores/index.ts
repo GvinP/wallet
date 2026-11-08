@@ -4,6 +4,7 @@ import { pinManager, vault } from '@/core/security';
 
 import { OnboardingDraft } from './OnboardingDraft';
 import { PendingTxStore } from './PendingTxStore';
+import { SensitiveGrants } from './SensitiveGrants';
 import { SendDraft } from './SendDraft';
 import { SessionStore } from './SessionStore';
 import { SettingsStore } from './SettingsStore';
@@ -14,6 +15,7 @@ export const settingsStore = new SettingsStore();
 export const walletStore = new WalletStore();
 export const sessionStore = new SessionStore({ vault, pinManager, wallet: walletStore });
 export const onboardingDraft = new OnboardingDraft();
+export type { SensitiveAction } from './SensitiveGrants';
 export const sendDraft = new SendDraft();
 export const pendingTxStore = new PendingTxStore({
   getClient: getPublicClient,
@@ -26,4 +28,15 @@ export const pendingTxStore = new PendingTxStore({
       8_000,
     );
   },
+});
+export const sensitiveGrants = new SensitiveGrants();
+
+// Deleting the wallet (Settings or "Forgot PIN") must leave nothing of it behind.
+sessionStore.onReset(() => {
+  pendingTxStore.clear();
+  settingsStore.resetWalletSettings();
+  sendDraft.reset();
+  onboardingDraft.clear();
+  sensitiveGrants.clear();
+  queryClient.clear();
 });

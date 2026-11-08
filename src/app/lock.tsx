@@ -1,5 +1,6 @@
+import { router } from 'expo-router';
 import { observer } from 'mobx-react-lite';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { shortenAddress } from '@/core/wallet';
@@ -64,6 +65,16 @@ function LockScreen() {
             : undefined
         }
       />
+      <Pressable
+        accessibilityRole="button"
+        hitSlop={8}
+        onPress={() => router.push('/forgot-pin')}
+        style={styles.forgot}
+      >
+        <Text variant="label" color="accentText" align="center">
+          Forgot PIN?
+        </Text>
+      </Pressable>
     </Screen>
   );
 }
@@ -82,6 +93,11 @@ const styles = StyleSheet.create((theme) => ({
   middle: {
     flex: 1,
     justifyContent: 'center',
+  },
+  forgot: {
+    minHeight: 44,
+    justifyContent: 'center',
+    marginTop: theme.space(2),
   },
   message: {
     minHeight: 48,

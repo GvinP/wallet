@@ -1,7 +1,7 @@
 import { Redirect } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 
-import { sessionStore } from '@/stores';
+import { onboardingDraft, sessionStore } from '@/stores';
 
 /**
  * App gate. Also the anchor that Stack.Protected falls back to whenever the session
@@ -12,7 +12,8 @@ function Index() {
     case 'booting':
       return null;
     case 'onboarding':
-      return <Redirect href="/welcome" />;
+      // "Forgot PIN" resets the wallet and continues straight to the import screen.
+      return <Redirect href={onboardingDraft.mode === 'import' ? '/import' : '/welcome'} />;
     case 'locked':
       return <Redirect href="/lock" />;
     case 'unlocked':

@@ -161,3 +161,20 @@ Needs `EXPO_PUBLIC_ETHERSCAN_KEY` (see the top of this file) for the full histor
 - [ ] 📱 Without the key: banner "Showing only transfers sent from this device…"; sent transfers still listed
 - [ ] 📱 Airplane mode on a fresh Activity → error banner + Retry
 - [ ] 📱 Switch network → Activity shows that network's history only
+
+## Phase 7 — settings
+
+**Acceptance — everything works, the phrase is shown only after the PIN**
+
+- [ ] 📱 Settings shows: Network, Appearance (System/Dark/Light), Security (biometrics switch, Show recovery phrase, Auto-lock info), Danger zone (Delete wallet), About (Version 0.1.0)
+- [ ] 📱 Network row opens the network sheet; the pill updates after switching
+- [ ] 📱 Theme: System / Dark / Light switch instantly and persist
+- [ ] 📱 Biometrics switch ON → system prompt; cancelling leaves it OFF; success turns it ON; OFF works without a prompt. The label matches the device ("Unlock with Face ID" / "Fingerprint")
+- [ ] 📱 With biometrics OFF: lock screen and send confirmation use the PIN only
+- [ ] 📱 Device without enrolled biometrics: switch disabled, "Not set up on this device"
+- [ ] 📱 **Show recovery phrase** → PIN sheet first; wrong PIN counts toward the lockout; correct PIN → phrase screen with words hidden until "Show phrase"
+- [ ] 🍏🤖 Screenshot on the phrase screen is blocked; app switcher shows the logo cover; returning from background hides the words again
+- [ ] 📱 Deep link `amethyst://recovery-phrase` (e.g. `npx uri-scheme open amethyst://recovery-phrase --android|--ios`) bounces back to Settings without a PIN
+- [ ] 📱 **Delete wallet** → PIN → confirmation screen; button disabled until "I have my recovery phrase written down" is ticked; deleting returns to Welcome
+- [ ] 📱 After deleting: relaunch → Welcome (not the lock screen); importing the same phrase gives the same address; biometrics is off again; old pending txs/history are gone
+- [ ] 📱 Lock screen **Forgot PIN?** → explanation → tick "I have my recovery phrase" → "Reset and import" lands directly on the import screen; Back from import goes to Welcome

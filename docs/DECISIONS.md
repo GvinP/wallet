@@ -95,3 +95,14 @@ Agreed deviations from / clarifications of the original spec. Newest last.
 - **Window:** newest 50 per list (MVP; no pagination yet).
 - After a local tx settles, history is refetched immediately and again 8 s later (indexer lag).
 - Dates are grouped in the device's local time; time format follows the device locale, everything else is English per the spec.
+
+## Phase 7 — settings
+
+- **Recovery phrase = PIN only** (spec §7 "after PIN"), not biometrics. The PIN check issues a one-time **grant** (in memory, 30 s TTL) that the phrase screen consumes on mount — so it can't be reached by navigation alone (deep link `amethyst://recovery-phrase`, back stack). Same for the delete screen.
+- The phrase is read from SecureStore into the screen's component state only, dropped on unmount, re-hidden when the app leaves the foreground, screenshots blocked.
+- **Delete wallet** = PIN → explicit confirmation (checkbox "I have my recovery phrase written down" + red button). `SessionStore.resetWallet()` wipes SecureStore (phrase, seed, PIN, attempts), the cached address, pending txs, query caches, drafts and grants; biometrics off, network back to Amoy; the theme is kept (device preference).
+- **Forgot PIN?** (deferred from phase 2): the PIN can't be recovered, so the lock screen offers "reset and import". It only deletes and reveals nothing, hence no PIN is needed — the same as MetaMask's "reset wallet". After the reset, the gate sends the user straight to the import screen.
+- **Enabling biometrics** requires one successful biometric check first; disabling needs nothing (it only makes the app stricter).
+- **Auto-lock** is shown as information (fixed at 1 minute per spec), not configurable.
+- New colour token `danger` (solid destructive buttons); the spec's `dangerText` stays for text.
+- Version from `expo-constants` (`expoConfig.version`), "(dev)" suffix in development builds.

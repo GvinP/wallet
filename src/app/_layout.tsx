@@ -84,6 +84,7 @@ function RootLayout() {
         </Stack.Protected>
         <Stack.Protected guard={status === 'locked'}>
           <Stack.Screen name="lock" options={{ animation: 'fade', gestureEnabled: false }} />
+          <Stack.Screen name="forgot-pin" />
         </Stack.Protected>
         <Stack.Protected guard={status === 'unlocked'}>
           <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
@@ -91,6 +92,8 @@ function RootLayout() {
           <Stack.Screen name="network" options={{ presentation: 'modal' }} />
           <Stack.Screen name="send" options={{ presentation: 'modal' }} />
           <Stack.Screen name="tx/[hash]" />
+          <Stack.Screen name="recovery-phrase" />
+          <Stack.Screen name="delete-wallet" />
           <Stack.Screen name="dev/benchmark" />
         </Stack.Protected>
       </Stack>

@@ -50,6 +50,12 @@ export class PendingTxStore {
     for (const tx of this.items) if (tx.status === 'pending') void this.track(tx);
   }
 
+  /** Wallet deleted: forget everything (in-flight trackers finish into the void). */
+  clear() {
+    this.items = [];
+    storage.remove(KEY);
+  }
+
   private async track(tx: LocalTx) {
     const key = `${tx.networkId}:${tx.hash}`;
     if (this.tracking.has(key)) return;

@@ -18,7 +18,10 @@ type HeaderProps = {
 /** 44pt top bar: back chevron · centered title or step indicator · optional right slot. */
 export function Header({ title, onBack, progress, right }: HeaderProps) {
   const { theme } = useUnistyles();
-  const handleBack = onBack === undefined ? () => router.back() : onBack;
+  const handleBack =
+    onBack === undefined
+      ? () => (router.canGoBack() ? router.back() : router.replace('/'))
+      : onBack;
 
   return (
     <View style={styles.bar}>

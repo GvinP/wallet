@@ -48,3 +48,19 @@ describe('SettingsStore', () => {
     expect(setScheme).toHaveBeenCalledWith('unspecified');
   });
 });
+
+describe('SettingsStore wallet reset', () => {
+  beforeEach(() => storage.clearAll());
+
+  it('turns biometrics off and returns to the default network, keeps the theme', () => {
+    jest.spyOn(Appearance, 'setColorScheme').mockImplementation(() => {});
+    const s = new SettingsStore();
+    s.setThemePreference('dark');
+    s.setBiometricsEnabled(true);
+    s.resetWalletSettings();
+    expect(s.biometricsEnabled).toBe(false);
+    expect(s.network).toBe('amoy');
+    expect(new SettingsStore().themePreference).toBe('dark');
+    expect(new SettingsStore().biometricsEnabled).toBe(false);
+  });
+});

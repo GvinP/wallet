@@ -46,7 +46,13 @@ export default function ImportScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <Screen scroll>
-        <Header />
+        <Header
+          onBack={() => {
+            onboardingDraft.clear();
+            if (router.canGoBack()) router.back();
+            else router.replace('/welcome');
+          }}
+        />
         <Text variant="title">Import a wallet</Text>
         <Text color="muted" style={styles.subtitle}>
           Enter your 12 or 24-word recovery phrase, separating words with spaces.

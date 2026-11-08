@@ -103,6 +103,35 @@ describe('SessionStore.createWallet', () => {
   });
 });
 
+describe('SessionStore.resetWallet', () => {
+  it('erases secrets, PIN and cached address, runs cleanup hooks, returns to onboarding', async () => {
+    const { session, store, wallet } = setup();
+    await session.createWallet(PHRASE, '123456');
+    await session.bootstrap();
+    session.unlock();
+
+    const calls: string[] = [];
+    session.onReset(() => calls.push('hook'));
+    await session.resetWallet(() => calls.push('before-onboarding'));
+
+    expect(store.dump()).toEqual({});
+    expect(wallet.address).toBeNull();
+    expect(storage.getString('wallet.address')).toBeUndefined();
+    expect(session.status).toBe('onboarding');
+    // The callback runs after the cleanup hooks (so a draft it sets survives).
+    expect(calls).toEqual(['hook', 'before-onboarding']);
+  });
+
+  it('after a reset the next launch starts in onboarding', async () => {
+    const { session, store } = setup();
+    await session.createWallet(PHRASE, '123456');
+    await session.resetWallet();
+    const next = setup(store.dump());
+    await next.session.bootstrap();
+    expect(next.session.status).toBe('onboarding');
+  });
+});
+
 describe('SessionStore auto-lock', () => {
   async function unlocked() {
     const ctx = setup();
