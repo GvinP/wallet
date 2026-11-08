@@ -60,7 +60,8 @@
     "test": "jest",
     "format": "prettier --write .",
     "doctor": "expo-doctor",
-    "test:integration": "jest -c jest.integration.config.js"
+    "test:integration": "jest -c jest.integration.config.js",
+    "test:coverage": "jest --coverage --collectCoverageFrom=\"src/core/**/*.ts\" --collectCoverageFrom=\"src/stores/**/*.ts\" --collectCoverageFrom=\"src/api/**/*.ts\" --collectCoverageFrom=\"!**/__tests__/**\""
   },
   "private": true,
   "jest": {

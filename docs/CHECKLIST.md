@@ -178,3 +178,15 @@ Needs `EXPO_PUBLIC_ETHERSCAN_KEY` (see the top of this file) for the full histor
 - [ ] 📱 **Delete wallet** → PIN → confirmation screen; button disabled until "I have my recovery phrase written down" is ticked; deleting returns to Welcome
 - [ ] 📱 After deleting: relaunch → Welcome (not the lock screen); importing the same phrase gives the same address; biometrics is off again; old pending txs/history are gone
 - [ ] 📱 Lock screen **Forgot PIN?** → explanation → tick "I have my recovery phrase" → "Reset and import" lands directly on the import screen; Back from import goes to Welcome
+
+## Phase 8 — polish for the portfolio
+
+- [ ] 📱 New app icon (purple gem) on the home screen; 🤖 adaptive icon looks right in circle/squircle masks; 🤖 themed (monochrome) icon on Android 13+
+- [ ] 📱 Splash: purple gem tile on the light/dark background matching the system theme, no white flash before the first screen
+- [ ] 📱 Skeletons: home total + assets, token cards on Send, Activity list — on a slow network (Developer options → network throttling)
+- [ ] 📱 Empty states: Activity with no transfers, Home "Recent activity"
+- [ ] Screenshots for `docs/screenshots/` (list in `docs/screenshots/README.md`) — use a fresh test wallet, dark theme first
+- [ ] GIF `docs/screenshots/demo.gif` of the send flow (≤ 10 s, ≤ 5 MB); then swap the mockups at the top of README for real screenshots
+- [ ] Record the device benchmark numbers (phase 1) in README → Testing
+- [ ] GitHub Actions "CI" is green on the branch
+- [ ] Decide on a LICENSE (the Expo template's MIT notice with Expo's copyright was removed in phase 0)

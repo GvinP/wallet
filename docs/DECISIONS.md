@@ -106,3 +106,10 @@ Agreed deviations from / clarifications of the original spec. Newest last.
 - **Auto-lock** is shown as information (fixed at 1 minute per spec), not configurable.
 - New colour token `danger` (solid destructive buttons); the spec's `dangerText` stays for text.
 - Version from `expo-constants` (`expoConfig.version`), "(dev)" suffix in development builds.
+
+## Phase 8 — polish
+
+- **Brand assets** generated from `assets/brand/gem.svg` (lucide "gem", ISC) on the accent gradient: iOS icon, Android adaptive foreground/background/monochrome, splash tile, favicon. Same mark as the in-app `Logo`.
+- **README** in English: features, stack, architecture and send-flow diagrams (Mermaid, rendered by GitHub), security model table, setup, testing. Design mockups are shown until device screenshots exist (`docs/screenshots/README.md` lists the shots to take).
+- **CI:** GitHub Actions — `npm ci`, typecheck, lint, tests with coverage, `expo-doctor`. No native builds in CI (EAS is used for those).
+- **Coverage** (core/stores/api): `npm run test:coverage`. Remaining uncovered code is thin platform glue (`expoSecureStore`, viem client factory, query focus wiring) exercised by integration/device tests.

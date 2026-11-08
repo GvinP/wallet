@@ -20,6 +20,7 @@ import { Button } from '@/ui/Button';
 import { amountErrorText, fundsErrorText, recipientErrorText } from '@/ui/copy';
 import { Header } from '@/ui/Header';
 import { Screen } from '@/ui/Screen';
+import { Skeleton } from '@/ui/Skeleton';
 import { Text } from '@/ui/Text';
 import { TokenIcon } from '@/ui/TokenIcon';
 
@@ -72,13 +73,15 @@ function SendScreen() {
                 <TokenIcon symbol={t.symbol} size={32} />
                 <View style={styles.flexShrink}>
                   <Text variant="label">{t.symbol}</Text>
-                  <Text variant="caption" color="muted" numberOfLines={1}>
-                    {!available
-                      ? 'Not configured'
-                      : balance != null
-                        ? formatTokenAmount(balance, t.decimals, { maxFraction: 4 })
-                        : '…'}
-                  </Text>
+                  {available && balance == null ? (
+                    <Skeleton width={56} height={12} />
+                  ) : (
+                    <Text variant="caption" color="muted" numberOfLines={1}>
+                      {!available
+                        ? 'Not configured'
+                        : formatTokenAmount(balance!, t.decimals, { maxFraction: 4 })}
+                    </Text>
+                  )}
                 </View>
               </Pressable>
             );
