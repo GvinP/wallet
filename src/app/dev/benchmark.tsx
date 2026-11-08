@@ -4,7 +4,7 @@ import { Platform, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { env } from '@/core/chain/env';
-import { runWalletBenchmarks, type BenchmarkResult } from '@/dev/benchmarks';
+import { benchmarkBackend, runWalletBenchmarks, type BenchmarkResult } from '@/dev/benchmarks';
 import { Button } from '@/ui/Button';
 import { Screen } from '@/ui/Screen';
 import { Text } from '@/ui/Text';
@@ -33,7 +33,9 @@ export default function BenchmarkScreen() {
     <Screen scroll>
       <Text variant="title">Crypto benchmark</Text>
       <Text color="muted" style={styles.subtitle}>
-        {Platform.OS} {String(Platform.Version)} · median of 3 runs · test phrase only
+        {Platform.OS} {String(Platform.Version)} · PBKDF2:{' '}
+        {benchmarkBackend === 'native' ? 'native (OpenSSL)' : 'JS'} · median of 3 runs · test phrase
+        only
       </Text>
 
       <Button title="Run" loading={running} onPress={run} />

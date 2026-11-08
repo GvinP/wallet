@@ -1,17 +1,18 @@
-import { mnemonicToSeed as scureMnemonicToSeed } from '@scure/bip39';
 import { bytesToHex, type Address, type Hex } from 'viem';
 import { HDKey, privateKeyToAccount, type PrivateKeyAccount } from 'viem/accounts';
+
+import { pbkdf2, utf8 } from '../crypto/kdf';
 
 /** First account of the first address — the same path MetaMask uses for "Account 1". */
 export const DERIVATION_PATH = "m/44'/60'/0'/0/0";
 
 /**
- * BIP39 mnemonic → 64-byte seed (PBKDF2-HMAC-SHA512, 2048 rounds).
- * This is the slow step; the async variant yields to the event loop so the UI stays responsive.
- * Expects an already validated + normalized mnemonic.
+ * BIP39 mnemonic → 64-byte seed: PBKDF2-HMAC-SHA512(NFKD(mnemonic), "mnemonic" + passphrase,
+ * 2048 rounds). Runs in native OpenSSL on devices (see core/crypto/kdf.ts).
+ * Expects an already validated + normalized mnemonic. No BIP39 passphrase (as in MetaMask).
  */
 export function mnemonicToSeed(mnemonic: string): Promise<Uint8Array> {
-  return scureMnemonicToSeed(mnemonic);
+  return pbkdf2('sha512', utf8(mnemonic.normalize('NFKD')), utf8('mnemonic'), 2048, 64);
 }
 
 /** Overwrites a buffer with zeros. Best effort: JS can't guarantee no copies were made. */

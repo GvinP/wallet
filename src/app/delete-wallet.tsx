@@ -67,6 +67,7 @@ export default function DeleteWalletScreen() {
           </Text>
         ) : null}
         <Button
+          testID="delete-wallet-confirm"
           title="Delete wallet"
           variant="danger"
           disabled={!backedUp}

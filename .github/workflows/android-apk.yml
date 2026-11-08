@@ -1,13 +1,16 @@
 name: Android APK
 
-# Installable test build for real devices: a standalone release APK (JS bundled, no Metro
-# needed), signed with the debug keystore from the Expo template — fine for testing,
-# not for the Play Store.
+# 1) Installable test build: a standalone release APK (JS bundled, no Metro needed), signed with
+#    the debug keystore from the Expo template — fine for testing, not for the Play Store.
+#    Built for arm64-v8a (phones) and x86_64 (emulators).
+# 2) End-to-end tests: the same APK on an Android emulator, driven by Maestro (.maestro/).
 #
 # Optional repository settings (Settings → Secrets and variables → Actions):
 #   secrets.EXPO_PUBLIC_ETHERSCAN_KEY   — full transaction history
 #   secrets.EXPO_PUBLIC_COINGECKO_KEY   — CoinGecko demo key if prices are rate-limited
 #   vars.EXPO_PUBLIC_USDT_AMOY          — MockUSDT address on Amoy
+#   secrets.E2E_FUNDED_PHRASE           — throwaway Amoy-only test phrase with a little POL;
+#                                         enables the real-transfer E2E flow
 # EXPO_PUBLIC_* values end up inside the APK; only put public API keys there.
 
 on:
@@ -20,11 +23,14 @@ concurrency:
   group: android-apk-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  MAESTRO_VERSION: 2.12.1
+
 jobs:
   apk:
     name: Build release APK
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 75
     env:
       EXPO_PUBLIC_ETHERSCAN_KEY: ${{ secrets.EXPO_PUBLIC_ETHERSCAN_KEY }}
       EXPO_PUBLIC_COINGECKO_KEY: ${{ secrets.EXPO_PUBLIC_COINGECKO_KEY }}
@@ -53,9 +59,9 @@ jobs:
         env:
           CI: 1
 
-      - name: Build (arm64 only — every phone from the last ~8 years)
+      - name: Build (arm64-v8a for phones, x86_64 for emulators)
         working-directory: android
-        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a,x86_64 --no-daemon
 
       - name: Name the APK
         run: |
@@ -69,4 +75,54 @@ jobs:
         with:
           name: amethyst-android-apk
           path: dist/*.apk
+          retention-days: 14
+
+  e2e:
+    name: E2E (Maestro on Android emulator)
+    needs: apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: amethyst-android-apk
+          path: dist
+
+      - name: Enable KVM for the emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install Maestro ${{ env.MAESTRO_VERSION }}
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          "$HOME/.maestro/bin/maestro" --version
+
+      - name: Run flows on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          E2E_FUNDED_PHRASE: ${{ secrets.E2E_FUNDED_PHRASE }}
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: ./scripts/e2e-android.sh "$(ls dist/*.apk | head -1)"
+
+      - name: Upload Maestro report & screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-e2e
+          path: e2e-output
           retention-days: 14

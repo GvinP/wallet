@@ -1,0 +1,26 @@
+# Spec phase 2: after a restart the app opens on the lock screen; wrong PIN is counted.
+appId: com.gvinp.amethyst
+tags: [security]
+---
+- runFlow: subflows/import-test-wallet.yaml
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: 'Welcome back'
+    timeout: 30000
+- assertVisible: 'Account 1 · 0xf39F…2266'
+- runFlow: subflows/enter-wrong-pin.yaml
+- assertVisible: 'Wrong PIN. 4 attempts left before a temporary lock.'
+- runFlow: subflows/enter-pin.yaml
+- extendedWaitUntil:
+    visible: 'Total balance'
+    timeout: 15000
+# "Dev: lock now" exists in test builds (EXPO_PUBLIC_DEV_TOOLS=1).
+- scrollUntilVisible:
+    element: 'Dev: lock now'
+- tapOn: 'Dev: lock now'
+- assertVisible: 'Welcome back'
+- runFlow: subflows/enter-pin.yaml
+- extendedWaitUntil:
+    visible: 'Total balance'
+    timeout: 15000

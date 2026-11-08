@@ -1,0 +1,19 @@
+# Fresh install → import the public test phrase ("test … junk") with PIN 123456.
+# Never use this phrase for real funds — it is public.
+appId: com.gvinp.amethyst
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: 'I already have a wallet'
+    timeout: 30000
+- tapOn: 'I already have a wallet'
+- tapOn: 'Recovery phrase'
+- inputText: 'test test test test test test test test test test test junk'
+- hideKeyboard
+- tapOn: 'Continue'
+- assertVisible: 'Create a PIN'
+- runFlow: enter-pin.yaml
+- assertVisible: 'Confirm your PIN'
+- runFlow: enter-pin.yaml
+- runFlow: finish-onboarding.yaml

@@ -5,6 +5,8 @@ devices. Grouped by phase; tick items off during the joint review.
 
 Legend: 🤖 Android · 🍏 iOS · 📱 both
 
+> **Automated by Maestro E2E** (CI job "E2E" in the Android APK workflow): create/backup/verify, import + address, import errors, lock after restart + wrong-PIN counter, receive, send validation, PIN-gated recovery phrase + deep-link bypass, delete wallet, Forgot PIN. Those items only need a quick visual look on the phone.
+
 ## ⚠️ Before testing on a device — prepare these
 
 - [ ] **Etherscan API key** (free): etherscan.io → sign in → _API Keys_ → _Add_. One key works for all chains (Polygon & Amoy are on the free tier). Put it in `.env` as `EXPO_PUBLIC_ETHERSCAN_KEY=…` — without it Activity shows only transfers sent from the device.
@@ -27,10 +29,11 @@ Legend: 🤖 Android · 🍏 iOS · 📱 both
 
 ## Phase 1 — wallet core
 
-- [ ] 🤖 Settings → "Dev: crypto benchmark" → Run on a low/mid-range Android. Record:
+- [x] 🤖 First run (JS PBKDF2, Android 13 mid-range): mnemonic→seed **4164 ms**, seed→account 127 ms, PIN hash (10k) **3005 ms** → switched to native PBKDF2
+- [ ] 🤖 Re-run with the native backend (subtitle must say "PBKDF2: native (OpenSSL)"). Record:
   - mnemonic → seed: ____ ms (spec threshold: discuss if > 1.5 s)
   - seed → account: ____ ms
-  - PIN hash (10k): ____ ms (target ≤ ~300 ms; adjust `DEFAULT_PIN_ITERATIONS`)
+  - PIN hash (100k native): ____ ms (target ≤ ~300 ms; adjust `NATIVE_PIN_ITERATIONS`)
 - [ ] 🍏 Same benchmark on iOS (for the README)
 
 ## Phase 2 — onboarding + lock

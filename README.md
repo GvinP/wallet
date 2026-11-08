@@ -192,7 +192,20 @@ npm run typecheck && npm run lint
 - **Money & chain:** integer USD math, fee/Max/funds rules, address & amount parsing, history normalization and merging, error classification.
 - **Screens (RNTL):** import, PIN entry, home, receive, send confirm (biometrics → PIN fallback), activity, settings, recovery phrase, delete wallet.
 - **End-to-end send pipeline** on a local chain-80002 EVM with the real MockUSDT: POL and USDT transfers, Max, on-chain failure, insufficient funds.
-- CI (GitHub Actions) runs typecheck, lint, tests with coverage and `expo-doctor` on every push.
+- **End-to-end (Maestro)** on the real release APK in an Android emulator: create (incl. reading the backup and passing the #3/#7/#11 quiz), import + MetaMask-compatible address, import errors, lock/unlock and wrong-PIN counter, receive, send validation, PIN-gated recovery phrase (deep link can't bypass it), delete wallet, "Forgot PIN?". An optional flow makes a real Amoy transfer with a funded test wallet.
+- CI (GitHub Actions) runs typecheck, lint, tests with coverage and `expo-doctor` on every push; the Android workflow builds the APK and runs the Maestro suite on an emulator.
+
+### End-to-end tests
+
+Flows live in [`.maestro/`](.maestro). Run them against a phone (USB debugging on) or an emulator:
+
+```bash
+curl -fsSL "https://get.maestro.mobile.dev" | bash      # Maestro CLI (Java 17+)
+scripts/e2e-android.sh path/to/amethyst.apk              # installs the APK and runs all flows
+E2E_FUNDED_PHRASE="…" scripts/e2e-android.sh app.apk     # + a real Amoy transfer (testnet-only phrase!)
+```
+
+Flows clear the app's data (`clearState`) — don't run them on a phone with a wallet you care about.
 
 ## Project docs
 

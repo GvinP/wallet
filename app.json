@@ -61,7 +61,9 @@
           "cameraPermission": "Amethyst uses the camera to scan wallet address QR codes.",
           "recordAudioAndroid": false
         }
-      ]
+      ],
+      "./plugins/withHideRecentsPreview",
+      "react-native-quick-crypto"
     ],
     "experiments": {
       "typedRoutes": true

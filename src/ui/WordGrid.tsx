@@ -22,7 +22,9 @@ export function WordGrid({ words, revealed, onReveal }: WordGridProps) {
             <Text variant="caption" color="muted" style={styles.index}>
               {i + 1}
             </Text>
-            <Text variant="bodyMedium">{revealed ? word : '••••••'}</Text>
+            <Text variant="bodyMedium" testID={`word-${i + 1}`}>
+              {revealed ? word : '••••••'}
+            </Text>
           </View>
         ))}
       </View>

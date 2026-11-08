@@ -1,0 +1,12 @@
+# After "Confirm your PIN": skip the biometrics offer if the device has biometrics enrolled,
+# then wait for the home screen (wallet creation runs PBKDF2 + SecureStore writes).
+appId: com.gvinp.amethyst
+---
+- runFlow:
+    when:
+      visible: 'Not now'
+    commands:
+      - tapOn: 'Not now'
+- extendedWaitUntil:
+    visible: 'Account 1'
+    timeout: 30000

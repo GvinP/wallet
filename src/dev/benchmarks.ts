@@ -1,3 +1,4 @@
+import { kdfBackend } from '@/core/crypto/kdf';
 import { DEFAULT_PIN_ITERATIONS, hashPin } from '@/core/security/pin';
 import { deriveAccount, generateMnemonic, mnemonicToSeed } from '@/core/wallet';
 
@@ -5,6 +6,9 @@ import { deriveAccount, generateMnemonic, mnemonicToSeed } from '@/core/wallet';
 const TEST_MNEMONIC = 'test test test test test test test test test test test junk';
 
 export type BenchmarkResult = { name: string; medianMs: number; runs: number[] };
+
+/** "native" = OpenSSL via react-native-quick-crypto, "js" = @noble/hashes fallback. */
+export const benchmarkBackend = kdfBackend;
 
 async function measure(name: string, runs: number, fn: () => unknown): Promise<BenchmarkResult> {
   const times: number[] = [];

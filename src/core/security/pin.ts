@@ -1,6 +1,6 @@
-import { pbkdf2Async } from '@noble/hashes/pbkdf2';
-import { sha256 } from '@noble/hashes/sha256';
 import { bytesToHex, hexToBytes, randomBytes } from '@noble/hashes/utils';
+
+import { kdfBackend, pbkdf2, utf8 } from '../crypto/kdf';
 
 import { FREE_PIN_ATTEMPTS, lockoutDelayMs } from './lockout';
 import { SECURE_KEYS, type SecureKeyValueStore } from './secureStore';
@@ -8,16 +8,19 @@ import { SECURE_KEYS, type SecureKeyValueStore } from './secureStore';
 export const PIN_LENGTH = 6;
 
 /**
- * PBKDF2-SHA256 work factor (pure JS — every unlock pays for it).
+ * PBKDF2-SHA256 work factor, stored per record (raising it rehashes on the next successful unlock).
  *
- * The PIN hash lives in the same Keychain/Keystore as the mnemonic, so an attacker able to
- * extract it already has the phrase: KDF cost buys little there. The real protection is the
- * attempt counter + growing lockout. We still salt and stretch so the stored value isn't a
- * trivially reversible digest. 100k iterations measured ~7.5 s on an interpreter without JIT,
- * so we start at 10k and tune on a low-end Android (target ≤ ~300 ms, see dev/benchmark).
- * Stored per record: raising it later rehashes on the next successful unlock.
+ * Measured on a mid-range Android (Hermes): 10k iterations in pure JS = 3.0 s per unlock — too slow.
+ * With native OpenSSL (react-native-quick-crypto) 100k iterations take tens of milliseconds, so we
+ * use 100k there and keep 10k only for the JS fallback.
+ *
+ * Note: the PIN hash lives in the same Keychain/Keystore as the phrase, so the attempt counter +
+ * lockout is the primary defence; the KDF keeps the stored value from being trivially reversible.
  */
-export const DEFAULT_PIN_ITERATIONS = 10_000;
+export const NATIVE_PIN_ITERATIONS = 100_000;
+export const JS_PIN_ITERATIONS = 10_000;
+export const DEFAULT_PIN_ITERATIONS =
+  kdfBackend === 'native' ? NATIVE_PIN_ITERATIONS : JS_PIN_ITERATIONS;
 
 type PinRecord = {
   v: 1;
@@ -59,7 +62,7 @@ export function isValidPinFormat(pin: string): boolean {
 }
 
 export async function hashPin(pin: string, salt: Uint8Array, iterations: number) {
-  return pbkdf2Async(sha256, pin, salt, { c: iterations, dkLen: 32 });
+  return pbkdf2('sha256', utf8(pin), salt, iterations, 32);
 }
 
 /** Constant-time comparison so timing doesn't leak how many bytes matched. */

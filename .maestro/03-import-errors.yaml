@@ -1,0 +1,30 @@
+# Import validation: word count, unknown word, checksum.
+appId: com.gvinp.amethyst
+tags: [onboarding]
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: 'I already have a wallet'
+    timeout: 30000
+- tapOn: 'I already have a wallet'
+
+- tapOn: 'Recovery phrase'
+- inputText: 'test test test'
+- hideKeyboard
+- tapOn: 'Continue'
+- assertVisible: 'Recovery phrases have 12 or 24 words — you entered 3.'
+
+- tapOn: 'Recovery phrase'
+- eraseText: 100
+- inputText: 'test test test test test test test test test test test junkk'
+- hideKeyboard
+- tapOn: 'Continue'
+- assertVisible: '.*#12 “junkk”.*'
+
+- tapOn: 'Recovery phrase'
+- eraseText: 100
+- inputText: 'test test test test test test test test test test test test'
+- hideKeyboard
+- tapOn: 'Continue'
+- assertVisible: "This phrase isn't valid. Check the order and spelling of the words."

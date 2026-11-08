@@ -1,0 +1,18 @@
+# Maestro E2E suite for Amethyst (Android). See README → "End-to-end tests".
+flows:
+  - '*'
+  - '!config.yaml'
+excludeTags:
+  - funded # needs a funded Amoy test wallet (E2E_FUNDED_PHRASE); run explicitly
+executionOrder:
+  continueOnFailure: true
+  flowsOrder:
+    - 01-create-wallet
+    - 02-import-wallet
+    - 03-import-errors
+    - 04-lock-unlock
+    - 05-receive
+    - 06-send-validation
+    - 07-recovery-phrase
+    - 08-delete-wallet
+    - 09-forgot-pin

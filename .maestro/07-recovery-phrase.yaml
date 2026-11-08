@@ -1,0 +1,19 @@
+# Spec phase 7: the phrase is shown only after the PIN; deep links can't bypass it.
+appId: com.gvinp.amethyst
+tags: [security]
+---
+- runFlow: subflows/import-test-wallet.yaml
+- openLink: 'amethyst://recovery-phrase'
+- assertNotVisible: 'junk'
+- extendedWaitUntil:
+    visible: 'Show recovery phrase'
+    timeout: 10000
+- tapOn: 'Show recovery phrase'
+- assertVisible: 'Enter your PIN to view your 12 words.'
+- runFlow: subflows/enter-pin.yaml
+- assertVisible: 'Recovery phrase'
+- assertNotVisible: 'junk'
+- tapOn: 'Show recovery phrase'
+- assertVisible: 'junk'
+- tapOn: 'Done'
+- assertVisible: 'Settings'

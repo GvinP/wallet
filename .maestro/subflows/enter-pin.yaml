@@ -1,0 +1,9 @@
+# Types the test PIN 123456 on the app's custom keypad.
+appId: com.gvinp.amethyst
+---
+- tapOn: '1'
+- tapOn: '2'
+- tapOn: '3'
+- tapOn: '4'
+- tapOn: '5'
+- tapOn: '6'

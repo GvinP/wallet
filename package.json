@@ -31,6 +31,8 @@
     "react-native-mmkv": "^4.3.2",
     "react-native-nitro-modules": "0.37.2",
     "react-native-qrcode-svg": "^6.3.54",
+    "react-native-quick-base64": "^3.0.1",
+    "react-native-quick-crypto": "^1.1.9",
     "react-native-safe-area-context": "~5.11.1",
     "react-native-screens": "~4.30.1",
     "react-native-svg": "15.16.0",

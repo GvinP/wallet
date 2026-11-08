@@ -1,0 +1,51 @@
+# Real transfer on Amoy (spec phase 5/6 acceptance). Needs a FUNDED test wallet:
+#   maestro test --include-tags funded -e E2E_FUNDED_PHRASE="…" .maestro
+# Use a throwaway testnet-only phrase with a little Amoy POL. Sends 0.001 POL to account #1
+# of the public test phrase and waits for confirmation.
+appId: com.gvinp.amethyst
+tags: [funded]
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: 'I already have a wallet'
+    timeout: 30000
+- tapOn: 'I already have a wallet'
+- tapOn: 'Recovery phrase'
+- inputText: ${E2E_FUNDED_PHRASE}
+- hideKeyboard
+- tapOn: 'Continue'
+- runFlow: subflows/enter-pin.yaml
+- runFlow: subflows/enter-pin.yaml
+- runFlow: subflows/finish-onboarding.yaml
+
+- tapOn: 'Send'
+- tapOn: 'Recipient address'
+- inputText: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
+- hideKeyboard
+- tapOn: 'Amount in POL'
+- inputText: '0.001'
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      text: 'Review'
+      enabled: true
+    timeout: 30000
+- tapOn: 'Review'
+- assertVisible: 'Confirm send'
+- assertVisible: '0.001 POL'
+- tapOn: 'Confirm'
+- runFlow:
+    when:
+      visible: 'Confirm transfer'
+    commands:
+      - runFlow: subflows/enter-pin.yaml
+- extendedWaitUntil:
+    visible: 'Sent!'
+    timeout: 60000
+- extendedWaitUntil:
+    visible: 'Confirmed on Polygon Amoy'
+    timeout: 120000
+- tapOn: 'Done'
+- tapOn: 'Activity'
+- assertVisible: 'Sent POL'
