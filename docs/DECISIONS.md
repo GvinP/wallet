@@ -39,3 +39,16 @@ Agreed deviations from / clarifications of the original spec. Newest last.
 | Mnemonic → seed     | ~8 ms    | ~550 ms     |
 | Seed → account      | ~3 ms    | ~7 ms       |
 | PIN hash ×100k      | ~150 ms  | ~7 500 ms   |
+
+## Phase 2 — onboarding + lock
+
+- **Routing:** session status (`booting → onboarding | locked | unlocked`) drives `Stack.Protected` groups in the root layout; `src/app/index.tsx` is the always-available anchor that redirects by status. Locking drops the navigation history of the unlocked area (after unlock you land on the Wallet tab).
+- **Write order on wallet creation:** PIN first, then mnemonic + seed. `bootstrap()` repairs either half-finished state (PIN without wallet → cleared; wallet without PIN → wiped, since it could never be unlocked).
+- **iOS reinstall:** the Keychain may survive an uninstall while MMKV doesn't. We keep the wallet (lock screen, old PIN) and re-derive the cached address from the seed.
+- **Onboarding draft** (phrase + first PIN entry) is a plain in-memory object, not MobX and never persisted; cleared right after the wallet is committed.
+- **Auto-lock** counts only time in `background` (> 60 s). `inactive` alone (Face ID prompt, Control Centre) never locks, but does show the privacy cover.
+- **Biometric unlock** never resets the PIN attempt counter; only a correct PIN does.
+- **PIN entry** uses our own keypad — the system keyboard (and its learning/clipboard features) never sees the PIN.
+- **Phrase input on Android** uses `keyboardType="visible-password"` to disable suggestions/learning; autocorrect, autofill and spell-check are off on both platforms.
+- **Screen capture** is blocked on backup, verify and import (`usePreventScreenCapture`; iOS 13+ blocks screenshots too).
+- **Not done (yet):** "Forgot PIN?" (reset by re-importing the phrase) — candidate for phase 7. Clearing the clipboard after a pasted import was skipped: reading the clipboard again triggers the iOS paste-permission prompt.

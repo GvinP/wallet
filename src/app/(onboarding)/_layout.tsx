@@ -9,6 +9,8 @@ export default function OnboardingLayout() {
         headerShown: false,
         contentStyle: { backgroundColor: theme.colors.bg },
       }}
-    />
+    >
+      <Stack.Screen name="enable-biometrics" options={{ gestureEnabled: false }} />
+    </Stack>
   );
 }

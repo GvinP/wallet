@@ -49,3 +49,4 @@ Docs: https://docs.expo.dev/eas/index.md
 - Do not touch mainnet in code until phase 5 is done; develop and verify on Amoy.
 - Ask before adding any dependency not listed in the spec or in `docs/DECISIONS.md`.
 - Record agreed deviations from the spec in `docs/DECISIONS.md`.
+- Anything that can only be verified on a real device goes into `docs/CHECKLIST.md` (the user reviews it in one pass later).
