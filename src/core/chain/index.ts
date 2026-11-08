@@ -7,3 +7,4 @@ export * from './receive';
 export * from './pendingTx';
 export * from './send';
 export * from './transfer';
+export * from './history';

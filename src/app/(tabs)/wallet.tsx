@@ -4,7 +4,10 @@ import { observer } from 'mobx-react-lite';
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
+import { shortTimeLabel } from '@/core/chain/history';
 import { formatUsdCents } from '@/core/chain/money';
+import { useHistory } from '@/hooks/useHistory';
+import { useNow } from '@/hooks/useNow';
 import { usePortfolio } from '@/hooks/usePortfolio';
 import { sessionStore, walletStore } from '@/stores';
 import { AssetRow } from '@/ui/AssetRow';
@@ -14,6 +17,7 @@ import { CopyAddress } from '@/ui/CopyAddress';
 import { NetworkPill } from '@/ui/NetworkPill';
 import { Skeleton } from '@/ui/Skeleton';
 import { Text } from '@/ui/Text';
+import { openTx, TxRow } from '@/ui/TxRow';
 
 function WalletScreen() {
   const { theme } = useUnistyles();
@@ -28,6 +32,12 @@ function WalletScreen() {
     refresh,
   } = usePortfolio({ poll: true });
   const address = walletStore.address;
+  const history = useHistory();
+  const now = useNow();
+  const recent = history.items.slice(0, 3);
+  const refreshAll = async () => {
+    await Promise.all([refresh(), history.refresh()]);
+  };
 
   return (
     <ScrollView
@@ -35,8 +45,8 @@ function WalletScreen() {
       contentContainerStyle={styles.content}
       refreshControl={
         <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={refresh}
+          refreshing={isRefreshing || history.isRefreshing}
+          onRefresh={refreshAll}
           tintColor={theme.colors.muted}
           colors={[theme.colors.accent]}
           progressBackgroundColor={theme.colors.surface}
@@ -136,7 +146,7 @@ function WalletScreen() {
         ))}
       </View>
 
-      {/* Recent activity — filled in phase 6 */}
+      {/* Recent activity: the 3 latest (spec §7) */}
       <View style={styles.sectionHeader}>
         <Text variant="heading">Recent activity</Text>
         <Pressable accessibilityRole="link" hitSlop={8} onPress={() => router.push('/activity')}>
@@ -145,11 +155,30 @@ function WalletScreen() {
           </Text>
         </Pressable>
       </View>
-      <View style={styles.empty}>
-        <Text variant="small" color="muted" align="center">
-          No transactions yet. Received and sent transfers will show up here.
-        </Text>
-      </View>
+      {recent.length > 0 ? (
+        <View>
+          {recent.map((item) => (
+            <TxRow
+              key={item.id}
+              item={item}
+              timeLabel={shortTimeLabel(item.timestamp, now)}
+              onPress={() => openTx(item)}
+            />
+          ))}
+        </View>
+      ) : history.isLoading ? (
+        <View style={styles.recentSkeleton}>
+          <Skeleton width="100%" height={48} radius={12} />
+        </View>
+      ) : (
+        <View style={styles.empty}>
+          <Text variant="small" color="muted" align="center">
+            {history.missingKey
+              ? 'Transfers you send will show up here. Full history needs an Etherscan API key.'
+              : 'No transactions yet. Received and sent transfers will show up here.'}
+          </Text>
+        </View>
+      )}
 
       {__DEV__ ? (
         <View style={styles.dev}>
@@ -248,6 +277,9 @@ const styles = StyleSheet.create((theme, rt) => ({
     justifyContent: 'space-between',
     marginTop: theme.space(7),
     marginBottom: theme.space(3),
+  },
+  recentSkeleton: {
+    paddingVertical: theme.space(2),
   },
   empty: {
     paddingVertical: theme.space(6),

@@ -85,3 +85,13 @@ Agreed deviations from / clarifications of the original spec. Newest last.
 - **MockUSDT** (`contracts/MockUSDT.sol`): OpenZeppelin ERC-20, 6 decimals, open `mint` ≤ 1 M per call, constructor reverts unless chain id is 80002. Deploy guide: `docs/MOCK_USDT.md`.
 - **Local e2e:** `send.localevm.integration.test.ts` runs the real pipeline against anvil/ganache (chain 80002) — skipped unless `LOCAL_RPC_URL` and `MOCK_USDT_ADDRESS` are set.
 - **Mainnet stays disabled** (`MAINNET_ENABLED = false`) until this phase is accepted on devices and the Polygon USDT address is re-verified.
+
+## Phase 6 — history
+
+- **Etherscan V2 free tier covers both chains** — verified via `GET https://api.etherscan.io/v2/chainlist` (2026-11-08): Polygon Mainnet (137) and Polygon Amoy (80002) → "Free-tier available". Without a key the API answers `Missing/Invalid API Key`; the app then shows only device-local transfers with an explanatory banner (no crash, no request sent).
+- **Sources:** `txlist` (POL transfers + our _failed_ USDT transfers, decoded from `transfer()` calldata because a reverted transfer emits no event) and `tokentx` filtered by **our USDT contract only** — spam/airdrop tokens never appear.
+- Zero-value contract calls (e.g. `approve`) are not shown. Internal POL transfers from contracts (`txlistinternal`) are out of MVP scope.
+- **Merge rules** (`mergeHistory`): the indexer wins when it knows the hash; local entries fill the gap until it does; a local tx replaced by a speed-up/cancel is hidden once the replacement is indexed; the same USDT transfer seen in both lists is deduped.
+- **Window:** newest 50 per list (MVP; no pagination yet).
+- After a local tx settles, history is refetched immediately and again 8 s later (indexer lag).
+- Dates are grouped in the device's local time; time format follows the device locale, everything else is English per the spec.

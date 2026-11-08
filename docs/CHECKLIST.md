@@ -5,6 +5,15 @@ devices. Grouped by phase; tick items off during the joint review.
 
 Legend: 🤖 Android · 🍏 iOS · 📱 both
 
+## ⚠️ Before testing on a device — prepare these
+
+- [ ] **Etherscan API key** (free): etherscan.io → sign in → _API Keys_ → _Add_. One key works for all chains (Polygon & Amoy are on the free tier). Put it in `.env` as `EXPO_PUBLIC_ETHERSCAN_KEY=…` — without it Activity shows only transfers sent from the device.
+- [ ] _(optional)_ **CoinGecko demo key** → `EXPO_PUBLIC_COINGECKO_KEY` if prices show "unavailable"
+- [ ] **Test POL** from https://faucet.polygon.technology (Amoy) — for fees and the MockUSDT deploy
+- [ ] **MockUSDT deployed** per `docs/MOCK_USDT.md` → `EXPO_PUBLIC_USDT_AMOY=0x…`
+- [ ] Restart Metro with a clean cache after editing `.env`: `npx expo start --dev-client --clear`
+- [ ] _(optional)_ With the key set, run `npm run test:integration` — includes a live Etherscan check
+
 ## Phase 0 — scaffold
 
 - [ ] 📱 Dev build compiles and launches (`npm run android` / `npm run ios` or EAS `development` profile)
@@ -135,3 +144,20 @@ Form & confirm
 - [ ] 📱 Biometrics disabled → Confirm goes straight to the PIN sheet
 - [ ] 📱 Can't swipe back from "Sending…"; Done closes the whole send sheet; reopening Send starts empty
 - [ ] 📱 Note the fee shown vs. the fee actually paid on polygonscan (shown is an upper bound): ____ / ____
+
+## Phase 6 — history
+
+Needs `EXPO_PUBLIC_ETHERSCAN_KEY` (see the top of this file) for the full history.
+
+- [ ] 📱 **Acceptance:** Activity lists incoming **and** outgoing **POL and USDT** transfers (send some to the app from MetaMask, send some from the app); amounts and directions match amoy.polygonscan.com
+- [ ] 📱 **Acceptance:** send a transfer → kill the app immediately → relaunch & unlock → it's in Activity as **Pending**, then turns **Confirmed** without manual refresh
+- [ ] 📱 Grouping by day: "TODAY", "YESTERDAY", then "Tue, Nov 3"-style headers
+- [ ] 📱 Row: arrow icon, "Sent/Received POL|USDT", "To/From 0x51bC…04Ad · 14:32", signed amount (incoming in green), status pill
+- [ ] 📱 Home "Recent activity" shows the 3 latest with "now" / time / "Yesterday"; "See all" opens Activity
+- [ ] 📱 Tap a row → details: amount, status, date, From/To (own address labelled "Account 1"), network, fee (outgoing), hash with copy, "View on explorer" opens the right tx
+- [ ] 📱 A failed USDT transfer (e.g. send more than the balance by editing nothing — only possible from another wallet; or use the local e2e) shows **Failed**, amount struck through
+- [ ] 📱 Spam: tokens other than our USDT sent to the address do **not** appear
+- [ ] 📱 Pull-to-refresh on Activity and Home updates the list
+- [ ] 📱 Without the key: banner "Showing only transfers sent from this device…"; sent transfers still listed
+- [ ] 📱 Airplane mode on a fresh Activity → error banner + Retry
+- [ ] 📱 Switch network → Activity shows that network's history only

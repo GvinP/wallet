@@ -19,5 +19,11 @@ export const pendingTxStore = new PendingTxStore({
   getClient: getPublicClient,
   onSettled: () => {
     void queryClient.invalidateQueries({ queryKey: queryKeys.balancesRoot });
+    // The indexer may lag a few seconds behind the receipt; refetch now and once more shortly.
+    void queryClient.invalidateQueries({ queryKey: queryKeys.historyRoot });
+    setTimeout(
+      () => void queryClient.invalidateQueries({ queryKey: queryKeys.historyRoot }),
+      8_000,
+    );
   },
 });

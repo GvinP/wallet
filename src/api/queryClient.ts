@@ -25,4 +25,6 @@ export const queryKeys = {
   prices: ['prices'] as const,
   balancesRoot: ['balances'] as const,
   balances: (networkId: string, address: string) => ['balances', networkId, address] as const,
+  historyRoot: ['history'] as const,
+  history: (networkId: string, address: string) => ['history', networkId, address] as const,
 };

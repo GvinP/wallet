@@ -12,6 +12,15 @@ jest.mock('expo-clipboard', () => ({ setStringAsync: jest.fn() }));
 type PortfolioResult = ReturnType<typeof usePortfolio>;
 let mockResult: PortfolioResult;
 jest.mock('@/hooks/usePortfolio', () => ({ usePortfolio: () => mockResult }));
+jest.mock('@/hooks/useHistory', () => ({
+  useHistory: () => ({
+    items: [],
+    missingKey: false,
+    isLoading: false,
+    isRefreshing: false,
+    refresh: jest.fn(),
+  }),
+}));
 
 const amoy: Network = {
   ...NETWORKS.amoy,
