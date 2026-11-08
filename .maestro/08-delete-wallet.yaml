@@ -1,0 +1,23 @@
+# Spec §6.8: delete only after the PIN and an explicit confirmation; re-import gives the same address.
+appId: com.gvinp.amethyst
+tags: [security]
+---
+- runFlow: subflows/import-test-wallet.yaml
+- tapOn: 'Settings'
+- scrollUntilVisible:
+    element: 'Remove it from this device'
+- tapOn: 'Remove it from this device'
+- runFlow: subflows/enter-pin.yaml
+- assertVisible: 'Remove this wallet?'
+- tapOn: 'I have my recovery phrase written down'
+- tapOn:
+    id: 'delete-wallet-confirm'
+- extendedWaitUntil:
+    visible: 'Create a new wallet'
+    timeout: 15000
+# Relaunch still lands on Welcome (nothing left behind).
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: 'Create a new wallet'
+    timeout: 30000

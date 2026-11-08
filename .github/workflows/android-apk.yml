@@ -1,0 +1,149 @@
+name: Android APK
+
+# 1) Test build: a standalone release-mode APK (JS bundled, no Metro needed) WITH developer
+#    helpers, signed with the Expo template's public debug keystore. Built for arm64-v8a (phones)
+#    and x86_64 (emulators).
+# 2) End-to-end tests: the same APK on an Android emulator, driven by Maestro (.maestro/).
+# 3) The test APK is deleted right after E2E (the repo is public). To install a test build on a
+#    phone, run this workflow manually with "keep_apk" ticked: the APK is then kept for 3 days.
+#    Public builds come from .github/workflows/release.yml (tags v*) → GitHub Releases.
+#
+# Optional repository settings (Settings → Secrets and variables → Actions):
+#   secrets.EXPO_PUBLIC_ETHERSCAN_KEY   — full transaction history
+#   secrets.EXPO_PUBLIC_COINGECKO_KEY   — CoinGecko demo key if prices are rate-limited
+#   vars.EXPO_PUBLIC_USDT_AMOY          — MockUSDT address on Amoy
+#   secrets.E2E_FUNDED_PHRASE           — throwaway Amoy-only test phrase with a little POL;
+#                                         enables the real-transfer E2E flow
+# EXPO_PUBLIC_* values end up inside the APK; only put public API keys there.
+
+on:
+  push:
+    branches: ['**']
+    paths-ignore: ['**.md', 'docs/**', 'contracts/**']
+  workflow_dispatch:
+    inputs:
+      keep_apk:
+        description: Keep the test APK as a downloadable artifact for 3 days
+        type: boolean
+        default: false
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MAESTRO_VERSION: 2.12.1
+
+jobs:
+  apk:
+    name: Build release APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+    env:
+      EXPO_PUBLIC_ETHERSCAN_KEY: ${{ secrets.EXPO_PUBLIC_ETHERSCAN_KEY }}
+      EXPO_PUBLIC_COINGECKO_KEY: ${{ secrets.EXPO_PUBLIC_COINGECKO_KEY }}
+      EXPO_PUBLIC_USDT_AMOY: ${{ vars.EXPO_PUBLIC_USDT_AMOY }}
+      # Test builds keep the crypto benchmark and "lock now" helpers (see src/core/chain/env.ts).
+      EXPO_PUBLIC_DEV_TOOLS: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - run: npm ci
+
+      - name: Generate the native Android project
+        run: npx expo prebuild --platform android --no-install --clean
+        env:
+          CI: 1
+
+      - name: Build (arm64-v8a for phones, x86_64 for emulators)
+        working-directory: android
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a,x86_64 --no-daemon
+
+      - name: Name the APK
+        run: |
+          VERSION=$(node -p "require('./app.json').expo.version")
+          mkdir -p dist
+          cp android/app/build/outputs/apk/release/app-release.apk \
+            "dist/amethyst-${VERSION}-${GITHUB_SHA::7}.apk"
+          ls -lh dist
+
+      - uses: actions/upload-artifact@v4
+        id: upload
+        with:
+          name: amethyst-android-apk
+          path: dist/*.apk
+          retention-days: ${{ inputs.keep_apk && 3 || 1 }}
+
+  e2e:
+    name: E2E (Maestro on Android emulator)
+    needs: apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: write # to delete the test APK artifact afterwards
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: amethyst-android-apk
+          path: dist
+
+      - name: Enable KVM for the emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install Maestro ${{ env.MAESTRO_VERSION }}
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          "$HOME/.maestro/bin/maestro" --version
+
+      - name: Run flows on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          E2E_FUNDED_PHRASE: ${{ secrets.E2E_FUNDED_PHRASE }}
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: ./scripts/e2e-android.sh "$(ls dist/*.apk | head -1)"
+
+      - name: Upload Maestro report & screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-e2e
+          path: e2e-output
+          retention-days: 7
+
+      # The test APK carries dev helpers and test API keys — don't leave it public.
+      - name: Delete the test APK artifact
+        if: always() && !inputs.keep_apk
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X DELETE "repos/${{ github.repository }}/actions/artifacts/${{ needs.apk.outputs.artifact-id }}"

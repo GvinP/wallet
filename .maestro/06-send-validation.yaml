@@ -1,0 +1,29 @@
+# Spec phase 5: address validation, self-send blocked, insufficient funds.
+appId: com.gvinp.amethyst
+tags: [wallet]
+---
+- runFlow: subflows/import-test-wallet.yaml
+- tapOn: 'Send'
+- assertVisible: 'TOKEN'
+
+- tapOn: 'Recipient address'
+- inputText: '0x123'
+- hideKeyboard
+- assertVisible: "That's not a valid Polygon address."
+
+- tapOn: 'Recipient address'
+- eraseText: 60
+- inputText: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
+- hideKeyboard
+- assertVisible: 'This is your own address.*'
+
+- tapOn: 'Recipient address'
+- eraseText: 60
+- inputText: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
+- hideKeyboard
+- tapOn: 'Amount in POL'
+- inputText: '1000000'
+- hideKeyboard
+- extendedWaitUntil:
+    visible: 'Not enough POL.*'
+    timeout: 30000

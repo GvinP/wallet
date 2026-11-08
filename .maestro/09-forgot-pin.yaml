@@ -1,0 +1,17 @@
+# Lock screen "Forgot PIN?" → reset → straight to import.
+appId: com.gvinp.amethyst
+tags: [security]
+---
+- runFlow: subflows/import-test-wallet.yaml
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: 'Welcome back'
+    timeout: 30000
+- tapOn: 'Forgot PIN\?'
+- assertVisible: 'Restore with your phrase'
+- tapOn: 'I have my recovery phrase'
+- tapOn: 'Reset and import'
+- extendedWaitUntil:
+    visible: 'Import a wallet'
+    timeout: 15000

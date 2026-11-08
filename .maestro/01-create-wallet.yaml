@@ -1,0 +1,48 @@
+# Spec phase 2: create a wallet — backup (hidden until tapped), verify #3/#7/#11, PIN.
+appId: com.gvinp.amethyst
+tags: [onboarding]
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: 'Create a new wallet'
+    timeout: 30000
+- assertVisible: 'Amethyst'
+- assertVisible: 'Your keys, your crypto'
+- tapOn: 'Create a new wallet'
+
+# Backup: words are masked until "Show phrase".
+- assertVisible: 'Back up your recovery phrase'
+- assertVisible: 'Show phrase'
+- tapOn: 'Show recovery phrase'
+- copyTextFrom:
+    id: 'word-3'
+- evalScript: ${output.w3 = maestro.copiedText}
+- copyTextFrom:
+    id: 'word-7'
+- evalScript: ${output.w7 = maestro.copiedText}
+- copyTextFrom:
+    id: 'word-11'
+- evalScript: ${output.w11 = maestro.copiedText}
+- tapOn: "I've written it down somewhere safe"
+- tapOn: 'Continue'
+
+# Verify: pick the right word for #3, #7, #11.
+- assertVisible: 'Confirm your phrase'
+- tapOn: ${output.w3}
+- tapOn: ${output.w7}
+- tapOn: ${output.w11}
+- tapOn: 'Continue'
+
+# PIN + confirmation.
+- assertVisible: 'Create a PIN'
+- runFlow: subflows/enter-pin.yaml
+- assertVisible: 'Confirm your PIN'
+- runFlow: subflows/enter-pin.yaml
+- runFlow: subflows/finish-onboarding.yaml
+
+# Home (phase 3).
+- assertVisible: 'TESTNET · tokens here have no real value'
+- assertVisible: 'Total balance'
+- assertVisible: 'Assets'
+- assertVisible: 'Polygon'

@@ -1,0 +1,8 @@
+# Spec acceptance: importing "test … junk" gives 0xf39Fd6e5…2266 (same as MetaMask/Hardhat).
+appId: com.gvinp.amethyst
+tags: [onboarding]
+---
+- runFlow: subflows/import-test-wallet.yaml
+- assertVisible: '0xf39F…2266'
+- tapOn: 'Receive'
+- assertVisible: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
