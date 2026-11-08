@@ -5,12 +5,15 @@ import type { TokenSymbol } from '@/core/chain/networks';
 
 import { Text } from './Text';
 
+/** Spec §10: "P" for Polygon, "T" for Tether (not the first letter of "USDT"). */
+const LETTERS: Record<TokenSymbol, string> = { POL: 'P', USDT: 'T' };
+
 /** Letter-in-a-circle token icon (spec §10: P on accent, T on #1F7A63 — no third-party logos). */
 export function TokenIcon({ symbol, size = 40 }: { symbol: TokenSymbol; size?: number }) {
   return (
     <View style={styles.circle(symbol, size)} accessibilityElementsHidden>
       <Text variant="label" color="onAccent" style={styles.letter(size)}>
-        {symbol[0]}
+        {LETTERS[symbol]}
       </Text>
     </View>
   );
