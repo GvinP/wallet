@@ -5,6 +5,7 @@ import {
   Inter_700Bold,
   useFonts,
 } from '@expo-google-fonts/inter';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { SplashScreen, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { observer } from 'mobx-react-lite';
@@ -12,6 +13,7 @@ import { useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 import { UnistylesRuntime, useUnistyles } from 'react-native-unistyles';
 
+import { queryClient, subscribeAppFocus } from '@/api/queryClient';
 import { sessionStore } from '@/stores';
 import { Banner } from '@/ui/Banner';
 import { PrivacyCover } from '@/ui/PrivacyCover';
@@ -33,7 +35,11 @@ function RootLayout() {
   useEffect(() => {
     sessionStore.bootstrap().catch(() => setBootError(true));
     const sub = AppState.addEventListener('change', (s) => sessionStore.handleAppStateChange(s));
-    return () => sub.remove();
+    const unsubscribeFocus = subscribeAppFocus();
+    return () => {
+      sub.remove();
+      unsubscribeFocus();
+    };
   }, []);
 
   // Keep the native root view in sync so screen transitions never flash a wrong color.
@@ -61,7 +67,7 @@ function RootLayout() {
   }
 
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
@@ -79,13 +85,14 @@ function RootLayout() {
         <Stack.Protected guard={status === 'unlocked'}>
           <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
           <Stack.Screen name="receive" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="network" options={{ presentation: 'modal' }} />
           <Stack.Screen name="send" options={{ presentation: 'modal' }} />
           <Stack.Screen name="tx/[hash]" />
           <Stack.Screen name="dev/benchmark" />
         </Stack.Protected>
       </Stack>
       <PrivacyCover />
-    </>
+    </QueryClientProvider>
   );
 }
 

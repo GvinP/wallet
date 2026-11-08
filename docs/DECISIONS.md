@@ -52,3 +52,15 @@ Agreed deviations from / clarifications of the original spec. Newest last.
 - **Phrase input on Android** uses `keyboardType="visible-password"` to disable suggestions/learning; autocorrect, autofill and spell-check are off on both platforms.
 - **Screen capture** is blocked on backup, verify and import (`usePreventScreenCapture`; iOS 13+ blocks screenshots too).
 - **Not done (yet):** "Forgot PIN?" (reset by re-importing the phrase) — candidate for phase 7. Clearing the clipboard after a pasted import was skipped: reading the clipboard again triggers the iOS paste-permission prompt.
+
+## Phase 3 — home screen
+
+- **Mainnet behind a flag.** Spec §9 puts the network switch in phase 3, while §11 forbids touching mainnet until phase 5 is done. Both networks are configured, the switcher works, but `MAINNET_ENABLED = false` keeps Polygon visible-but-disabled. Flip after phase 5 acceptance + USDT address re-verification.
+- **Default RPCs:** viem's chain defaults are now `polygon-amoy.drpc.org` / `polygon.drpc.org` (the old `rpc-amoy.polygon.technology` timed out from the dev container). Overridable via `EXPO_PUBLIC_RPC_*`.
+- **CoinGecko ids verified** (2026-11-08): `polygon-ecosystem-token` (POL), `tether`. The keyless API returns 429 from shared IPs, so an optional free demo key `EXPO_PUBLIC_COINGECKO_KEY` was added (sent as `x-cg-demo-api-key`). No new dependency.
+- **Integer money math:** USD values are bigint cents = amount × price-as-8-decimal-fixed-point. Token amounts are truncated for display (never shown higher than held); dust shows as `<0.0001`.
+- **Total with missing prices:** sums what's priced and appends "+" when a held asset has no price.
+- **Query keys** include network id and address; no global `placeholderData` so a network switch can never show the other network's balances. A failed refetch keeps the last data and shows an info banner.
+- **Focus refetch:** TanStack `focusManager` is wired to `AppState`.
+- **Integration tests** (`npm run test:integration`) hit the live Amoy RPC in a plain Node Jest config — jest-expo stubs global `fetch`.
+- **Recent activity** on the home screen is an empty state until phase 6.

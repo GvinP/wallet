@@ -36,7 +36,8 @@ npm start
 | `npm run ios` / `npm run android` | Build and run a local dev build |
 | `npm run typecheck`               | `tsc --noEmit`                  |
 | `npm run lint`                    | ESLint (expo config + Prettier) |
-| `npm test`                        | Jest                            |
+| `npm test`                        | Jest (unit + component)         |
+| `npm run test:integration`        | Live tests against the Amoy RPC |
 | `npm run format`                  | Prettier                        |
 | `npm run doctor`                  | `expo-doctor`                   |
 

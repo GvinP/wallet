@@ -57,3 +57,24 @@ Lock
 - [ ] 📱 App switcher shows the logo cover, not the screen content (any screen)
 - [ ] 🍏 Face ID prompt on the lock screen doesn't cause a lock loop (cover appears during the prompt, then disappears)
 - [ ] 📱 "Dev: lock now" on the home stub locks immediately
+
+## Phase 3 — home screen
+
+Setup: copy `.env.example` → `.env`; optionally set `EXPO_PUBLIC_COINGECKO_KEY` (free demo key) if prices show "unavailable" (HTTP 429).
+
+- [ ] 📱 **Acceptance:** POL balance on the home screen equals amoy.polygonscan.com for your address (Amoy faucet: https://faucet.polygon.technology)
+- [ ] 📱 Sanity: importing `test … junk` shows ≈0.3525 POL on Amoy (value read from the live RPC on 2026-11-08; may change)
+- [ ] 📱 USDT row says "Not configured on this network" until `EXPO_PUBLIC_USDT_AMOY` is set (phase 5)
+- [ ] 📱 Total = Σ(amount × price); POL price looks right vs coingecko.com
+- [ ] 📱 Header: avatar "A1", "Account 1", short address; tap copies the full address (icon turns into a check, "Copied")
+- [ ] 📱 Orange "Amoy" pill + yellow TESTNET banner; tapping the pill opens the network sheet
+- [ ] 📱 Network sheet: Polygon mainnet is visible but disabled ("available after testnet testing")
+- [ ] 📱 Pull-to-refresh spins and updates; balances auto-refresh every ~30 s (send POL from another wallet and wait)
+- [ ] 📱 Airplane mode on a fresh launch → "Couldn't load balances" + Retry works after reconnecting
+- [ ] 📱 Airplane mode after data loaded → last values stay, info banner "Showing the last known balances"
+- [ ] 📱 Skeletons while loading (first launch / after switching networks)
+- [ ] 📱 Gear icon opens Settings; "See all" opens Activity
+
+Before enabling mainnet (after phase 5)
+
+- [ ] Verify the Polygon USDT contract on polygonscan — CoinGecko's `tether` entry no longer lists a polygon-pos address (Tether migrated to USDT0); decide which contract/symbol to show
