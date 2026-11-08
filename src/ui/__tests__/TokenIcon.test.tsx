@@ -10,8 +10,8 @@ describe('TokenIcon', () => {
         <TokenIcon symbol="USDT" />
       </>,
     );
-    expect(screen.getByText('P')).toBeOnTheScreen();
-    expect(screen.getByText('T')).toBeOnTheScreen();
-    expect(screen.queryByText('U')).toBeNull();
+    expect(screen.getByText('P', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(screen.getByText('T', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(screen.queryByText('U', { includeHiddenElements: true })).toBeNull();
   });
 });
