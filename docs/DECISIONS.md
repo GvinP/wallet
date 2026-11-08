@@ -113,3 +113,10 @@ Agreed deviations from / clarifications of the original spec. Newest last.
 - **README** in English: features, stack, architecture and send-flow diagrams (Mermaid, rendered by GitHub), security model table, setup, testing. Design mockups are shown until device screenshots exist (`docs/screenshots/README.md` lists the shots to take).
 - **CI:** GitHub Actions — `npm ci`, typecheck, lint, tests with coverage, `expo-doctor`. No native builds in CI (EAS is used for those).
 - **Coverage** (core/stores/api): `npm run test:coverage`. Remaining uncovered code is thin platform glue (`expoSecureStore`, viem client factory, query focus wiring) exercised by integration/device tests.
+
+## After phase 8
+
+- **License: MIT** (© 2026 GvinP) — the simplest permissive open-source license.
+- **Android test APK in CI** (`.github/workflows/android-apk.yml`): `expo prebuild` + `gradlew assembleRelease` on every push (docs-only changes skipped), arm64-v8a only to keep build time down, signed with the template's debug keystore, uploaded as a 14-day artifact. Keys come from repository secrets/variables. No EAS account needed.
+- **`EXPO_PUBLIC_DEV_TOOLS=1`** keeps the developer helpers (crypto benchmark, "lock now") in those test release builds; `__DEV__` alone would hide them.
+- **Mainnet** stays disabled for now (decision postponed).

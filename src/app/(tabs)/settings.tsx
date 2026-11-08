@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { ScrollView, Switch, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
+import { env } from '@/core/chain/env';
 import { NETWORKS } from '@/core/chain/networks';
 import { authenticateWithBiometrics } from '@/core/security';
 import { biometryIcon, useBiometryStatus } from '@/hooks/useBiometryStatus';
@@ -139,7 +140,7 @@ function SettingsScreen() {
           title="Version"
           right={<Text color="muted">{appVersion()}</Text>}
         />
-        {__DEV__ ? (
+        {env.devTools ? (
           <>
             <SettingsDivider />
             <SettingsRow

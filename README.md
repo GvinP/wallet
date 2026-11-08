@@ -167,6 +167,18 @@ npm start              # Metro for the installed dev client
 `EXPO_PUBLIC_*` values are inlined into the bundle — they are public API keys, never secrets.
 Test POL: https://faucet.polygon.technology (Amoy).
 
+## Try it on Android
+
+Every push builds an installable **release APK** (arm64, JS bundled, no Metro needed) in GitHub Actions:
+
+1. Repo → **Actions** → **Android APK** → the latest green run → _Artifacts_ → `amethyst-android-apk` (a zip with the `.apk`).
+2. Copy the APK to the phone, open it and allow "Install unknown apps" for your file manager / browser.
+
+Test builds include the developer helpers (crypto benchmark, "lock now"). To bake keys into the APK, add
+`EXPO_PUBLIC_ETHERSCAN_KEY` (and optionally `EXPO_PUBLIC_COINGECKO_KEY`) as repository **secrets** and
+`EXPO_PUBLIC_USDT_AMOY` as a repository **variable** (Settings → Secrets and variables → Actions).
+The APK is signed with the Expo template's debug key — fine for testing, not for distribution.
+
 ## Testing
 
 ```bash
@@ -192,3 +204,7 @@ npm run typecheck && npm run lint
 
 Multiple accounts, WalletConnect / dApp browser, swaps, NFTs, custom tokens, address book, push notifications,
 history pagination beyond the latest 50 entries per list.
+
+## License
+
+[MIT](LICENSE) © 2026 GvinP

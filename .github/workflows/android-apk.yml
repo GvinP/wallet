@@ -1,0 +1,72 @@
+name: Android APK
+
+# Installable test build for real devices: a standalone release APK (JS bundled, no Metro
+# needed), signed with the debug keystore from the Expo template — fine for testing,
+# not for the Play Store.
+#
+# Optional repository settings (Settings → Secrets and variables → Actions):
+#   secrets.EXPO_PUBLIC_ETHERSCAN_KEY   — full transaction history
+#   secrets.EXPO_PUBLIC_COINGECKO_KEY   — CoinGecko demo key if prices are rate-limited
+#   vars.EXPO_PUBLIC_USDT_AMOY          — MockUSDT address on Amoy
+# EXPO_PUBLIC_* values end up inside the APK; only put public API keys there.
+
+on:
+  push:
+    branches: ['**']
+    paths-ignore: ['**.md', 'docs/**', 'contracts/**']
+  workflow_dispatch:
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    name: Build release APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      EXPO_PUBLIC_ETHERSCAN_KEY: ${{ secrets.EXPO_PUBLIC_ETHERSCAN_KEY }}
+      EXPO_PUBLIC_COINGECKO_KEY: ${{ secrets.EXPO_PUBLIC_COINGECKO_KEY }}
+      EXPO_PUBLIC_USDT_AMOY: ${{ vars.EXPO_PUBLIC_USDT_AMOY }}
+      # Test builds keep the crypto benchmark and "lock now" helpers (see src/core/chain/env.ts).
+      EXPO_PUBLIC_DEV_TOOLS: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - run: npm ci
+
+      - name: Generate the native Android project
+        run: npx expo prebuild --platform android --no-install --clean
+        env:
+          CI: 1
+
+      - name: Build (arm64 only — every phone from the last ~8 years)
+        working-directory: android
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon
+
+      - name: Name the APK
+        run: |
+          VERSION=$(node -p "require('./app.json').expo.version")
+          mkdir -p dist
+          cp android/app/build/outputs/apk/release/app-release.apk \
+            "dist/amethyst-${VERSION}-${GITHUB_SHA::7}.apk"
+          ls -lh dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: amethyst-android-apk
+          path: dist/*.apk
+          retention-days: 14

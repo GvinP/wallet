@@ -16,4 +16,10 @@ export const env = {
   usdtAmoy: address(process.env.EXPO_PUBLIC_USDT_AMOY),
   etherscanKey: nonEmpty(process.env.EXPO_PUBLIC_ETHERSCAN_KEY),
   coingeckoKey: nonEmpty(process.env.EXPO_PUBLIC_COINGECKO_KEY),
+  /**
+   * Dev-only helpers (crypto benchmark, "lock now"): always in development, and in test
+   * release builds made with EXPO_PUBLIC_DEV_TOOLS=1 (the CI Android APK).
+   */
+  devTools:
+    (typeof __DEV__ !== 'undefined' && __DEV__) || process.env.EXPO_PUBLIC_DEV_TOOLS === '1',
 };

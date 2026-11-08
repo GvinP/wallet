@@ -12,6 +12,7 @@ Legend: 🤖 Android · 🍏 iOS · 📱 both
 - [ ] **Test POL** from https://faucet.polygon.technology (Amoy) — for fees and the MockUSDT deploy
 - [ ] **MockUSDT deployed** per `docs/MOCK_USDT.md` → `EXPO_PUBLIC_USDT_AMOY=0x…`
 - [ ] Restart Metro with a clean cache after editing `.env`: `npx expo start --dev-client --clear`
+- [ ] **Or, without a computer build (Android):** add the keys in GitHub → Settings → Secrets and variables → Actions (`EXPO_PUBLIC_ETHERSCAN_KEY` secret, `EXPO_PUBLIC_USDT_AMOY` variable), re-run **Actions → Android APK**, download the `amethyst-android-apk` artifact and install it (see README → "Try it on Android")
 - [ ] _(optional)_ With the key set, run `npm run test:integration` — includes a live Etherscan check
 
 ## Phase 0 — scaffold

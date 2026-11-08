@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Platform, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
+import { env } from '@/core/chain/env';
 import { runWalletBenchmarks, type BenchmarkResult } from '@/dev/benchmarks';
 import { Button } from '@/ui/Button';
 import { Screen } from '@/ui/Screen';
@@ -14,7 +15,7 @@ export default function BenchmarkScreen() {
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!__DEV__) return <Redirect href="/" />;
+  if (!env.devTools) return <Redirect href="/" />;
 
   const run = async () => {
     setRunning(true);

@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
+import { env } from '@/core/chain/env';
 import { shortTimeLabel } from '@/core/chain/history';
 import { formatUsdCents } from '@/core/chain/money';
 import { useHistory } from '@/hooks/useHistory';
@@ -180,7 +181,7 @@ function WalletScreen() {
         </View>
       )}
 
-      {__DEV__ ? (
+      {env.devTools ? (
         <View style={styles.dev}>
           <Button title="Dev: lock now" variant="outline" onPress={() => sessionStore.lock()} />
         </View>
